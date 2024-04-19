@@ -3,6 +3,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,10 +11,14 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
-
-	probing "github.com/prometheus-community/pro-bing"
 )
+
+type Router struct {
+	IP     string  `json:"ip"`
+	Lat    float64 `json:"lat"`
+	Lon    float64 `json:"lon"`
+	Status int     `json:"status"`
+}
 
 // Fait un appel à l'API renseignée.
 // Prend en entrée une adresse (string), renvoie le code de statut (int) et le corps ([]byte) de la réponse.
@@ -48,7 +53,7 @@ func extractCoords(data []byte) (float64, float64) {
 	var lat, lon float64
 
 	// Structure de la réponse JSON.
-	// Doit être adaptée selon l'API. On peut omettre les champs inutiles.
+	// Doit être adaptée data[0].selon l'API. On peut omettre les champs inutiles.
 	// Des outils existent pour le générer automatiquement (ex: https://mholt.github.io/json-to-go/)
 	type Geometry struct {
 		Coordinates []float64 `json:"coordinates"`
@@ -65,7 +70,7 @@ func extractCoords(data []byte) (float64, float64) {
 	// Traitement des données JSON
 	err := json.Unmarshal(data, &target)
 	if err != nil {
-		log.Fatalf("--- Erreur lors du traitement des données JSON:\n%s", err)
+		log.Fatalf("--- Erreur lors du traitement des données JSON reçues:\n%s", err)
 	}
 
 	// Récupération des coordonnées
@@ -74,35 +79,33 @@ func extractCoords(data []byte) (float64, float64) {
 	return lat, lon
 }
 
-// Ping une adresse IP pour vérifier son état.ody
-// Prend en entrée un adresse IP (string) et renvoie le statut (int, up = 1 et down = 0).
-// On peut changer le nombre de paquets à envoyer et la durée avant time out.
-func probeIP(IPaddr string) int {
-	var up int
+// Récupère les données du fichier de stockage JSON.
+// Ne prend rien en entrée et renvoie les données dans un struct []Router.
+// Modifier partie récupération du chemin si besoin de mettre le fichier ailleurs que dans le répertoire parent.
+func readJSON() []Router {
 
-	// Configuration du ping
-	pinger, err := probing.NewPinger(IPaddr)
+	var data []Router
+
+	// Récupération du chemin vers le fichier
+	curDir, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("--- Erreur lors de la configuration du ping vers l'adresse spécifiée:\n%s", err)
+		log.Fatalf("--- Erreur lors de la récupération du répertoire courant:\n%s", err)
 	}
-	pinger.Count = 1 // Nombre de paquets à envoyer.
-	pinger.SetPrivileged(true)
-	pinger.Timeout = time.Millisecond * 20 // Durée avant time out (en time.Duration).
+	var filePath string = strings.ReplaceAll(curDir, "outil-cli", "routers.json")
 
-	// Exécution du ping
-	err = pinger.Run()
+	// Lecture du fichier
+	content, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Fatalf("--- Erreur lors de l'exécution du ping vers l'adresse spécifiée:\n%s", err)
+		log.Fatalf("--- Erreur lors de la lecture du fichier JSON:\n%s", err)
 	}
 
-	// Résultat
-	if pinger.Statistics().PacketsRecv == pinger.Statistics().PacketsSent {
-		up = 1
-	} else {
-		up = 0
+	// Traitement des données
+	err = json.NewDecoder(bytes.NewBuffer(content)).Decode(&data)
+	if err != nil {
+		log.Fatalf("--- Erreur lors du traitement des données du fichier JSON:\n%s", err)
 	}
 
-	return up
+	return data
 }
 
 // Pour l'instant, ne sert qu'à tester.
@@ -112,7 +115,7 @@ func main() {
 	var addrIP string
 
 	// Récupération adresse postale
-	fmt.Print("Adresse >> ")
+	fmt.Print("Adresse postale >> ")
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanner.Scan() {
 		addrPost = scanner.Text()
@@ -127,12 +130,24 @@ func main() {
 	fmt.Printf("%f %f\n", lat, lon)
 
 	// Récupération adresse IP
-	fmt.Print("IP >> ")
+	fmt.Print("Adresse IP >> ")
 	if scanner.Scan() {
 		addrIP = scanner.Text()
 	}
+	fmt.Println(addrIP)
 
-	// Traitement adresse IP
-	status := probeIP(addrIP)
-	fmt.Println(status)
+	// Récupération données du fichier
+	data := readJSON()
+
+	// Ajout d'un nouveau routeur
+	newRouter := Router{
+		IP:     addrIP,
+		Lat:    lat,
+		Lon:    lon,
+		Status: 0,
+	}
+
+	data = append(data, newRouter)
+
+	fmt.Printf("%+v", data)
 }
