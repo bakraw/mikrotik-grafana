@@ -10,9 +10,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
-
-	probing "github.com/prometheus-community/pro-bing"
 )
 
 // Fait un appel à l'API renseignée.
@@ -74,42 +71,19 @@ func extractCoords(data []byte) (float64, float64) {
 	return lat, lon
 }
 
-// Ping une adresse IP pour vérifier son état.ody
-// Prend en entrée un adresse IP (string) et renvoie le statut (int, up = 1 et down = 0).
-// On peut changer le nombre de paquets à envoyer et la durée avant time out.
-func probeIP(IPaddr string) int {
-	var up int
-
-	// Configuration du ping
-	pinger, err := probing.NewPinger(IPaddr)
-	if err != nil {
-		log.Fatalf("--- Erreur lors de la configuration du ping vers l'adresse spécifiée:\n%s", err)
-	}
-	pinger.Count = 1 // Nombre de paquets à envoyer.
-	pinger.SetPrivileged(true)
-	pinger.Timeout = time.Millisecond * 20 // Durée avant time out (en time.Duration).
-
-	// Exécution du ping
-	err = pinger.Run()
-	if err != nil {
-		log.Fatalf("--- Erreur lors de l'exécution du ping vers l'adresse spécifiée:\n%s", err)
-	}
-
-	// Résultat
-	if pinger.Statistics().PacketsRecv == pinger.Statistics().PacketsSent {
-		up = 1
-	} else {
-		up = 0
-	}
-
-	return up
-}
-
 // Pour l'instant, ne sert qu'à tester.
 // Servira probablement de menu.
 func main() {
 	var addrPost string
 	var addrIP string
+	var status int = 0
+
+	type router struct {
+		IP     string  "json:'ip'"
+		Lat    float64 "json:'lat'"
+		Lon    float64 "'json:'lon'"
+		Status int     "'json:'status'"
+	}
 
 	// Récupération adresse postale
 	fmt.Print("Adresse >> ")
@@ -131,8 +105,9 @@ func main() {
 	if scanner.Scan() {
 		addrIP = scanner.Text()
 	}
+	fmt.Println(addrIP)
 
 	// Traitement adresse IP
-	status := probeIP(addrIP)
 	fmt.Println(status)
+
 }
