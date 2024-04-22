@@ -1,18 +1,103 @@
+// Dernière mise à jour: avril 2024
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	probing "github.com/prometheus-community/pro-bing"
 )
+
+type Router struct {
+	IP     string  `json:"ip"`
+	Lat    float64 `json:"lat"`
+	Lon    float64 `json:"lon"`
+	Status int     `json:"status"`
+}
+
+// Renvoie le chemin vers le fichier JSON.
+// Ne prend rien en entrée et renvoie le chemin (string).
+// A modifier si besoin de mettre le fichier ailleurs que dans le répertoire parent.
+func getPath() string {
+
+	// Récupération du chemin vers le fichier
+	curDir, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la récupération du répertoire courant:\n%s", err)
+	}
+	var filePath string = strings.ReplaceAll(curDir, "api-json", "routers.json")
+
+	return filePath
+}
+
+// Récupère les données du fichier de stockage JSON.
+// Ne prend rien en entrée et renvoie les données dans un struct []Router.
+func readJSON() []Router {
+
+	var data []Router
+
+	// Lecture du fichier
+	content, err := os.ReadFile(getPath())
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la lecture du fichier JSON:\n%s", err)
+	}
+
+	// Traitement des données
+	err = json.NewDecoder(bytes.NewBuffer(content)).Decode(&data)
+	if err != nil {
+		log.Fatalf("--- Erreur lors du traitement des données du fichier JSON:\n%s", err)
+	}
+
+	return data
+}
+
+// Ecrit par-dessus le fichier JSON.
+// Prend en entrée les données à écrire et ne renvoie rien.
+func writeJSON(data []Router) {
+
+	content, err := os.OpenFile(getPath(), os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
+	}
+
+	err = json.NewEncoder(content).Encode(data)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de l'écriture du fichier JSON:\n%s", err)
+	}
+}
+
+// Traite les requêtes HTTP GET.
+// Prend en entrée un http.responseWriter et une http.Request.
+// Ne devrait être appelée que via HandleFunc().
+func getRoot(w http.ResponseWriter, r *http.Request) {
+
+	json.NewEncoder(w).Encode(readJSON())
+
+	fmt.Printf("Got GET request on /\n")
+}
+
+// Traite les requêtes HTTP entrantes.
+// Ne prend rien en entrée et en renvoie rien.
+// Fonction sans condition de sortie.
+func handleRequests() {
+
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", getRoot)
+
+	log.Fatal(http.ListenAndServe("localhost:3333", router))
+}
 
 // Ping une adresse IP pour vérifier son état.
 // Prend en entrée un adresse IP (string) et renvoie le statut (int, up = 1 et down = 0).
 // On peut changer le nombre de paquets à envoyer et la durée avant time out.
 func probeIP(IPaddr string) int {
-	var up int
 
 	// Configuration du ping
 	pinger, err := probing.NewPinger(IPaddr)
@@ -31,14 +116,34 @@ func probeIP(IPaddr string) int {
 
 	// Résultat
 	if pinger.Statistics().PacketsRecv == pinger.Statistics().PacketsSent {
-		up = 1
+		return 1
 	} else {
-		up = 0
+		return 0
 	}
+}
 
-	return up
+// Teste toutes les IPs mentionnées dans un slice de struct puis ré-écrit le fichier JSON.
+// Prend un slice de structs ([]Router) en entrée et ne renvoie rien.
+// Fonction sans condition de sortie.
+func probeAll(routers []Router) {
+
+	for {
+		fmt.Println("--- Mise à jour du statut des routeurs...")
+
+		// Test des IPs
+		for i := range routers {
+			routers[i].Status = probeIP(routers[i].IP)
+		}
+
+		// Ecriture du fichier JSON
+		writeJSON(routers)
+		
+		fmt.Println("--- Mise à jour terminée.")
+		time.Sleep(time.Second * 30)
+	}
 }
 
 func main() {
-	fmt.Printf("aaa")
+	go probeAll(readJSON())	// Goroutine de test des IPs en parallèle du traitement des requêtes HTTP.
+	handleRequests()
 }
