@@ -53,7 +53,7 @@ func extractCoords(data []byte) (float64, float64) {
 	var lat, lon float64
 
 	// Structure de la réponse JSON.
-	// Doit être adaptée data[0].selon l'API. On peut omettre les champs inutiles.
+	// Doit être adaptée selon l'API. On peut omettre les champs inutiles.
 	// Des outils existent pour le générer automatiquement (ex: https://mholt.github.io/json-to-go/)
 	type Geometry struct {
 		Coordinates []float64 `json:"coordinates"`
@@ -79,12 +79,10 @@ func extractCoords(data []byte) (float64, float64) {
 	return lat, lon
 }
 
-// Récupère les données du fichier de stockage JSON.
-// Ne prend rien en entrée et renvoie les données dans un struct []Router.
-// Modifier partie récupération du chemin si besoin de mettre le fichier ailleurs que dans le répertoire parent.
-func readJSON() []Router {
-
-	var data []Router
+// Renvoie le chemin vers le fichier JSON.
+// Ne prend rien en entrée et renvoie le chemin (string).
+// A modifier si besoin de mettre le fichier ailleurs que dans le répertoire parent.
+func getPath() string {
 
 	// Récupération du chemin vers le fichier
 	curDir, err := os.Getwd()
@@ -93,8 +91,17 @@ func readJSON() []Router {
 	}
 	var filePath string = strings.ReplaceAll(curDir, "outil-cli", "routers.json")
 
+	return filePath
+}
+
+// Récupère les données du fichier de stockage JSON.
+// Ne prend rien en entrée et renvoie les données dans un struct []Router.
+func readJSON() []Router {
+
+	var data []Router
+
 	// Lecture du fichier
-	content, err := os.ReadFile(filePath)
+	content, err := os.ReadFile(getPath())
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la lecture du fichier JSON:\n%s", err)
 	}
@@ -108,9 +115,25 @@ func readJSON() []Router {
 	return data
 }
 
+// Ecrit par-dessus le fichier JSON.
+// Prend en entrée les données à écrire et ne renvoie rien.
+func writeJSON(data []Router) {
+
+	content, err := os.OpenFile(getPath(), os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
+	}
+
+	err = json.NewEncoder(content).Encode(data)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de l'écriture du fichier JSON:\n%s", err)
+	}
+}
+
 // Pour l'instant, ne sert qu'à tester.
 // Servira probablement de menu.
 func main() {
+
 	var addrPost string
 	var addrIP string
 
@@ -136,7 +159,6 @@ func main() {
 	}
 	fmt.Println(addrIP)
 
-	// Récupération données du fichier
 	data := readJSON()
 
 	// Ajout d'un nouveau routeur
@@ -148,6 +170,11 @@ func main() {
 	}
 
 	data = append(data, newRouter)
+
+	writeJSON(data)
+
+	// Récupération données du fichier
+	data = readJSON()
 
 	fmt.Printf("%+v", data)
 }
