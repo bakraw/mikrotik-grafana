@@ -67,7 +67,9 @@ func writeJSON(data []Router) {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
 
-	err = json.NewEncoder(content).Encode(data)
+	enc := json.NewEncoder(content)
+	enc.SetIndent("", "")
+	err = enc.Encode(data)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'écriture du fichier JSON:\n%s", err)
 	}
@@ -137,13 +139,13 @@ func probeAll(routers []Router) {
 
 		// Ecriture du fichier JSON
 		writeJSON(routers)
-		
+
 		fmt.Println("--- Mise à jour terminée.")
 		time.Sleep(time.Second * 30)
 	}
 }
 
 func main() {
-	go probeAll(readJSON())	// Goroutine de test des IPs en parallèle du traitement des requêtes HTTP.
+	go probeAll(readJSON()) // Goroutine de test des IPs en parallèle du traitement des requêtes HTTP.
 	handleRequests()
 }
