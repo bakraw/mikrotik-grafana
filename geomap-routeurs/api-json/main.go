@@ -1,3 +1,4 @@
+// Dernière mise à jour: avril 2024
 package main
 
 import (
@@ -72,6 +73,9 @@ func writeJSON(data []Router) {
 	}
 }
 
+// Traite les requêtes HTTP GET.
+// Prend en entrée un http.responseWriter et une http.Request.
+// Ne devrait être appelée que via HandleFunc().
 func getRoot(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(readJSON())
@@ -79,6 +83,9 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Got GET request on /\n")
 }
 
+// Traite les requêtes HTTP entrantes.
+// Ne prend rien en entrée et en renvoie rien.
+// Fonction sans condition de sortie.
 func handleRequests() {
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -115,23 +122,28 @@ func probeIP(IPaddr string) int {
 	}
 }
 
+// Teste toutes les IPs mentionnées dans un slice de struct puis ré-écrit le fichier JSON.
+// Prend un slice de structs ([]Router) en entrée et ne renvoie rien.
+// Fonction sans condition de sortie.
 func probeAll(routers []Router) {
 
 	for {
 		fmt.Println("--- Mise à jour du statut des routeurs...")
 
+		// Test des IPs
 		for i := range routers {
 			routers[i].Status = probeIP(routers[i].IP)
 		}
 
+		// Ecriture du fichier JSON
 		writeJSON(routers)
+		
 		fmt.Println("--- Mise à jour terminée.")
 		time.Sleep(time.Second * 30)
 	}
-
 }
 
 func main() {
-	go probeAll(readJSON())
+	go probeAll(readJSON())	// Goroutine de test des IPs en parallèle du traitement des requêtes HTTP.
 	handleRequests()
 }
