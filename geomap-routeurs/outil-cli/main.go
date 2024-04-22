@@ -13,11 +13,21 @@ import (
 	"strings"
 )
 
+// Structure routers.json
 type Router struct {
 	IP     string  `json:"ip"`
 	Lat    float64 `json:"lat"`
 	Lon    float64 `json:"lon"`
 	Status int     `json:"status"`
+}
+
+// Structure prometheus_targets.json
+type PromTargets struct {
+	Labels  Labels   `json:"labels"`
+	Targets []string `json:"targets"`
+}
+type Labels struct {
+	Job string `json:"job"`
 }
 
 // Fait un appel à l'API renseignée.
@@ -79,29 +89,29 @@ func extractCoords(data []byte) (float64, float64) {
 	return lat, lon
 }
 
-// Renvoie le chemin vers le fichier JSON.
-// Ne prend rien en entrée et renvoie le chemin (string).
+// Renvoie le chemin vers le fichier JSON spécifié.
+// Prend le nom du fichier en entrée et renvoie le chemin (string).
 // A modifier si besoin de mettre le fichier ailleurs que dans le répertoire parent.
-func getPath() string {
+func getPath(target string) string {
 
 	// Récupération du chemin vers le fichier
 	curDir, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la récupération du répertoire courant:\n%s", err)
 	}
-	var filePath string = strings.ReplaceAll(curDir, "outil-cli", "routers.json")
+	var filePath string = strings.ReplaceAll(curDir, "outil-cli", target)
 
 	return filePath
 }
 
 // Récupère les données du fichier de stockage JSON.
-// Ne prend rien en entrée et renvoie les données dans un struct []Router.
+// Ne prend rien en entrée et renvoie les données dans un slice de struct []Router.
 func readJSON() []Router {
 
 	var data []Router
 
 	// Lecture du fichier
-	content, err := os.ReadFile(getPath())
+	content, err := os.ReadFile(getPath("routers.json"))
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la lecture du fichier JSON:\n%s", err)
 	}
@@ -119,19 +129,56 @@ func readJSON() []Router {
 // Prend en entrée les données à écrire et ne renvoie rien.
 func writeJSON(data []Router) {
 
-	content, err := os.OpenFile(getPath(), os.O_WRONLY, os.ModePerm)
+	content, err := os.OpenFile(getPath("routers.json"), os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
 
-	err = json.NewEncoder(content).Encode(data)
+	enc := json.NewEncoder(content)
+	enc.SetIndent("", "    ")
+	err = enc.Encode(data)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'écriture du fichier JSON:\n%s", err)
 	}
 }
 
-// Pour l'instant, ne sert qu'à tester.
-// Servira probablement de menu.
+// Récupère les données du fichier des cibles Prometheus JSON.
+// Ne prend rien en entrée et renvoie les données dans un slice de struct []PromTargets.
+func readPromTargets() []PromTargets {
+
+	var data []PromTargets
+
+	// Lecture du fichier
+	content, err := os.ReadFile(getPath("prometheus_targets.json"))
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la lecture du fichier JSON:\n%s", err)
+	}
+
+	// Traitement des données
+	err = json.NewDecoder(bytes.NewBuffer(content)).Decode(&data)
+	if err != nil {
+		log.Fatalf("--- Erreur lors du traitement des données du fichier JSON:\n%s", err)
+	}
+
+	return data
+}
+
+// Ecrit par-dessus le fichier de cibles Prometheus JSON.
+// Prend en entrée les données à écrire et ne renvoie rien.
+func writePromTargets(data []PromTargets) {
+	content, err := os.OpenFile(getPath("prometheus_targets.json"), os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
+	}
+
+	enc := json.NewEncoder(content)
+	enc.SetIndent("", "    ")
+	err = enc.Encode(data)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de l'écriture du fichier JSON:\n%s", err)
+	}
+}
+
 func main() {
 
 	var addrPost string
@@ -159,9 +206,9 @@ func main() {
 	}
 	fmt.Println(addrIP)
 
-	data := readJSON()
+	dataR := readJSON()
 
-	// Ajout d'un nouveau routeur
+	// Ajout d'un nouveau routeur dans routers.json
 	newRouter := Router{
 		IP:     addrIP,
 		Lat:    lat,
@@ -169,12 +216,12 @@ func main() {
 		Status: 0,
 	}
 
-	data = append(data, newRouter)
+	dataR = append(dataR, newRouter)
+	writeJSON(dataR)
 
-	writeJSON(data)
-
-	// Récupération données du fichier
-	data = readJSON()
-
-	fmt.Printf("%+v", data)
+	// Ajout IP dans prometheus_targets.json
+	dataT := readPromTargets()
+	fmt.Printf("%+v", dataT)
+	dataT[0].Targets = append(dataT[0].Targets, addrIP)
+	writePromTargets(dataT)
 }
