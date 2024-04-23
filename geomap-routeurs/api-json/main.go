@@ -62,13 +62,15 @@ func readJSON() []Router {
 // Prend en entrée les données à écrire et ne renvoie rien.
 func writeJSON(data []Router) {
 
+	// Ouverture du fichier
 	content, err := os.OpenFile(getPath(), os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
 
+	// Ecriture du fichier
 	enc := json.NewEncoder(content)
-	enc.SetIndent("", "")
+	enc.SetIndent("", "    ")
 	err = enc.Encode(data)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'écriture du fichier JSON:\n%s", err)
@@ -76,6 +78,7 @@ func writeJSON(data []Router) {
 }
 
 // Traite les requêtes HTTP GET.
+// Renvoie simplement le contenu de routers.json
 // Prend en entrée un http.responseWriter et une http.Request.
 // Ne devrait être appelée que via HandleFunc().
 func getRoot(w http.ResponseWriter, r *http.Request) {
@@ -125,12 +128,16 @@ func probeIP(IPaddr string) int {
 }
 
 // Teste toutes les IPs mentionnées dans un slice de struct puis ré-écrit le fichier JSON.
-// Prend un slice de structs ([]Router) en entrée et ne renvoie rien.
+// Ne prend rien en entrée et ne renvoie rien.
 // Fonction sans condition de sortie.
-func probeAll(routers []Router) {
+func probeAll() {
+
+	var routers []Router
 
 	for {
 		fmt.Println("--- Mise à jour du statut des routeurs...")
+
+		routers = readJSON()
 
 		// Test des IPs
 		for i := range routers {
@@ -146,6 +153,6 @@ func probeAll(routers []Router) {
 }
 
 func main() {
-	go probeAll(readJSON()) // Goroutine de test des IPs en parallèle du traitement des requêtes HTTP.
+	go probeAll() // Goroutine de test des IPs en parallèle du traitement des requêtes HTTP.
 	handleRequests()
 }
