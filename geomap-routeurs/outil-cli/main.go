@@ -129,11 +129,13 @@ func readJSON() []Router {
 // Prend en entrée les données à écrire et ne renvoie rien.
 func writeJSON(data []Router) {
 
+	// Ouverture du fichier
 	content, err := os.OpenFile(getPath("routers.json"), os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
 
+	// Ecriture du fichier
 	enc := json.NewEncoder(content)
 	enc.SetIndent("", "    ")
 	err = enc.Encode(data)
@@ -166,11 +168,14 @@ func readPromTargets() []PromTargets {
 // Ecrit par-dessus le fichier de cibles Prometheus JSON.
 // Prend en entrée les données à écrire et ne renvoie rien.
 func writePromTargets(data []PromTargets) {
+
+	// Ouverture du fichier
 	content, err := os.OpenFile(getPath("prometheus_targets.json"), os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
 
+	// Ecriture du fichier
 	enc := json.NewEncoder(content)
 	enc.SetIndent("", "    ")
 	err = enc.Encode(data)
@@ -179,10 +184,14 @@ func writePromTargets(data []PromTargets) {
 	}
 }
 
-func main() {
+// Fonction principale qui ajoute un routeur aux fichiers.
+// Ne prend rien en entrée et ne renvoie rien.
+func addRouter() {
 
 	var addrPost string
 	var addrIP string
+
+	fmt.Println("--- Ajouter une adresse à la supervision")
 
 	// Récupération adresse postale
 	fmt.Print("Adresse postale >> ")
@@ -201,9 +210,7 @@ func main() {
 
 	// Récupération adresse IP
 	fmt.Print("Adresse IP >> ")
-	if scanner.Scan() {
-		addrIP = scanner.Text()
-	}
+	fmt.Scanln(&addrIP)
 	fmt.Println(addrIP)
 
 	dataR := readJSON()
@@ -221,7 +228,23 @@ func main() {
 
 	// Ajout IP dans prometheus_targets.json
 	dataT := readPromTargets()
-	fmt.Printf("%+v", dataT)
 	dataT[0].Targets = append(dataT[0].Targets, addrIP)
 	writePromTargets(dataT)
+
+	fmt.Println("--- Routeur ajouté")
+}
+
+func main() {
+
+	var n int
+	fmt.Print(">>> Nombre de routeurs à ajouter: ")
+	n, err := fmt.Scanln(&n)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
+	}
+
+	for i := 0; i < n; i++ {
+		addRouter()
+	}
+
 }
