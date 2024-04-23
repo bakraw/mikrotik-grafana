@@ -191,7 +191,7 @@ func addRouter() {
 	var addrPost string
 	var addrIP string
 
-	fmt.Println("--- Ajouter une adresse à l            "192.168.88.1"a supervision")
+	fmt.Println("--- Ajouter une adresse à la supervision")
 
 	// Récupération adresse postale
 	fmt.Print("Adresse postale >> ")
