@@ -184,7 +184,9 @@ func writePromTargets(data []PromTargets) {
 	}
 }
 
-func main() {
+// Fonction principale qui ajoute un routeur aux fichiers.
+// Ne prend rien en entrée et ne renvoie rien.
+func addRouter() {
 
 	var addrPost string
 	var addrIP string
@@ -208,9 +210,7 @@ func main() {
 
 	// Récupération adresse IP
 	fmt.Print("Adresse IP >> ")
-	if scanner.Scan() {
-		addrIP = scanner.Text()
-	}
+	fmt.Scanln(&addrIP)
 	fmt.Println(addrIP)
 
 	dataR := readJSON()
@@ -230,4 +230,21 @@ func main() {
 	dataT := readPromTargets()
 	dataT[0].Targets = append(dataT[0].Targets, addrIP)
 	writePromTargets(dataT)
+
+	fmt.Println("--- Routeur ajouté")
+}
+
+func main() {
+
+	var n int
+	fmt.Print(">>> Nombre de routeurs à ajouter: ")
+	n, err := fmt.Scanln(&n)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
+	}
+
+	for i := 0; i < n; i++ {
+		addRouter()
+	}
+
 }
