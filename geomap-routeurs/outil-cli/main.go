@@ -15,10 +15,11 @@ import (
 
 // Structure routers.json
 type Router struct {
-	IP     string  `json:"ip"`
-	Lat    float64 `json:"lat"`
-	Lon    float64 `json:"lon"`
-	Status int     `json:"status"`
+	IP      string  `json:"ip"`
+	Lat     float64 `json:"lat"`
+	Lon     float64 `json:"lon"`
+	Adresse string  `json:"adresse"`
+	Statut  int     `json:"statut"`
 }
 
 // Structure prometheus_targets.json
@@ -56,11 +57,12 @@ func geoAPI(addr string) ([]byte, int) {
 }
 
 // Traite le JSON reçu et en extrait les coordonnées de l'adresse.
-// Prend en entrée des données JSON ([]byte) et renvoie latitude (float64) et longitude (float64).
+// Prend en entrée des données JSON ([]byte) et renvoie latitude (float64), longitude (float64) et adresse (string).
 // Doit être adaptée selon l'API.
-func extractCoords(data []byte) (float64, float64) {
+func extractCoords(data []byte) (float64, float64, string) {
 
 	var lat, lon float64
+	var adresse string
 
 	// Structure de la réponse JSON.
 	// Doit être adaptée selon l'API. On peut omettre les champs inutiles.
@@ -68,8 +70,12 @@ func extractCoords(data []byte) (float64, float64) {
 	type Geometry struct {
 		Coordinates []float64 `json:"coordinates"`
 	}
+	type Properties struct {
+		Label string `json:"label"`
+	}
 	type Features struct {
-		Geometry Geometry `json:"geometry"`
+		Geometry   Geometry   `json:"geometry"`
+		Properties Properties `json:"properties"`
 	}
 	type Data struct {
 		Features []Features `json:"features"`
@@ -84,23 +90,17 @@ func extractCoords(data []byte) (float64, float64) {
 	}
 
 	// Récupération des coordonnées
-	lat, lon = target.Features[0].Geometry.Coordinates[1], target.Features[0].Geometry.Coordinates[0]
+	lat, lon, adresse = target.Features[0].Geometry.Coordinates[1], target.Features[0].Geometry.Coordinates[0], target.Features[0].Properties.Label
 
-	return lat, lon
+	return lat, lon, adresse
 }
 
 // Renvoie le chemin vers le fichier JSON spécifié.
 // Prend le nom du fichier en entrée et renvoie le chemin (string).
-// A modifier si besoin de mettre le fichier ailleurs que dans le répertoire parent.
+// A modifier si besoin de mettre le fichier ailleurs.
 func getPath(target string) string {
 
-	// Récupération du chemin vers le fichier
-	curDir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("--- Erreur lors de la récupération du répertoire courant:\n%s", err)
-	}
-	var filePath string = strings.ReplaceAll(curDir, "outil-cli", target)
-
+	filePath := fmt.Sprintf("%s/supervision-mikrotik-grafana/fichiers-config/%s", os.Getenv("HOME"), target)
 	return filePath
 }
 
@@ -205,7 +205,7 @@ func addRouter() {
 	if resCode != 200 {
 		log.Fatalf("--- Erreur lors de l'appel à l'API de géocodage (code %d)", resCode)
 	}
-	lat, lon := extractCoords(resBody)
+	lat, lon, adresse := extractCoords(resBody)
 	fmt.Printf("%f %f\n", lat, lon)
 
 	// Récupération adresse IP
@@ -217,10 +217,11 @@ func addRouter() {
 
 	// Ajout d'un nouveau routeur dans routers.json
 	newRouter := Router{
-		IP:     addrIP,
-		Lat:    lat,
-		Lon:    lon,
-		Status: 0,
+		IP:      addrIP,
+		Lat:     lat,
+		Lon:     lon,
+		Adresse: adresse,
+		Statut:  0,
 	}
 
 	dataR = append(dataR, newRouter)

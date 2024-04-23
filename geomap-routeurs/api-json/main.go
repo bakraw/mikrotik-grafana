@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -16,10 +15,11 @@ import (
 )
 
 type Router struct {
-	IP     string  `json:"ip"`
-	Lat    float64 `json:"lat"`
-	Lon    float64 `json:"lon"`
-	Status int     `json:"status"`
+	IP      string  `json:"ip"`
+	Lat     float64 `json:"lat"`
+	Lon     float64 `json:"lon"`
+	Adresse string  `json:"adresse"`
+	Statut  int     `json:"statut"`
 }
 
 // Renvoie le chemin vers le fichier JSON.
@@ -27,13 +27,7 @@ type Router struct {
 // A modifier si besoin de mettre le fichier ailleurs que dans le répertoire parent.
 func getPath() string {
 
-	// Récupération du chemin vers le fichier
-	curDir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("--- Erreur lors de la récupération du répertoire courant:\n%s", err)
-	}
-	var filePath string = strings.ReplaceAll(curDir, "api-json", "routers.json")
-
+	filePath := fmt.Sprintf("/home/%s/supervision-mikrotik-grafana/fichiers-config/routers.json", os.Getenv("SUDO_USER"))
 	return filePath
 }
 
@@ -131,7 +125,6 @@ func probeIP(IPaddr string) int {
 // Ne prend rien en entrée et ne renvoie rien.
 // Fonction sans condition de sortie.
 func probeAll() {
-
 	var routers []Router
 
 	for {
@@ -141,7 +134,7 @@ func probeAll() {
 
 		// Test des IPs
 		for i := range routers {
-			routers[i].Status = probeIP(routers[i].IP)
+			routers[i].Statut = probeIP(routers[i].IP)
 		}
 
 		// Ecriture du fichier JSON
