@@ -1,4 +1,2 @@
-geomap-routeurs/outil-cli/go.sum
-geomap-routeurs/api-json/go.sum
-#fichiers-config/routers.json
-#fichiers-config/prometheus_targets.json
+src/outil-cli/go.sum
+src/api-json/go.sum

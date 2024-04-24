@@ -100,7 +100,7 @@ func extractCoords(data []byte) (float64, float64, string) {
 // A modifier si besoin de mettre le fichier ailleurs.
 func getPath(target string) string {
 
-	filePath := fmt.Sprintf("%s/mikrotik-grafana/fichiers-config/%s", os.Getenv("HOME"), target)
+	filePath := fmt.Sprintf("%s/mikrotik-grafana/conf/%s", os.Getenv("HOME"), target)
 	return filePath
 }
 
@@ -206,16 +206,15 @@ func addRouter() {
 		log.Fatalf("--- Erreur lors de l'appel à l'API de géocodage (code %d)", resCode)
 	}
 	lat, lon, adresse := extractCoords(resBody)
-	fmt.Printf("%f %f\n", lat, lon)
+	fmt.Printf("- %s\n- %f, %f\n", adresse, lat, lon)
 
 	// Récupération adresse IP
 	fmt.Print("Adresse IP >> ")
 	fmt.Scanln(&addrIP)
-	fmt.Println(addrIP)
-
-	dataR := readJSON()
 
 	// Ajout d'un nouveau routeur dans routers.json
+	dataR := readJSON()
+
 	newRouter := Router{
 		IP:      addrIP,
 		Lat:     lat,
