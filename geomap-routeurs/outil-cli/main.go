@@ -100,7 +100,7 @@ func extractCoords(data []byte) (float64, float64, string) {
 // A modifier si besoin de mettre le fichier ailleurs.
 func getPath(target string) string {
 
-	filePath := fmt.Sprintf("%s/supervision-mikrotik-grafana/fichiers-config/%s", os.Getenv("HOME"), target)
+	filePath := fmt.Sprintf("%s/mikrotik-grafana/fichiers-config/%s", os.Getenv("HOME"), target)
 	return filePath
 }
 

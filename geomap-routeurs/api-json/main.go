@@ -27,7 +27,7 @@ type Router struct {
 // A modifier si besoin de mettre le fichier ailleurs que dans le répertoire parent.
 func getPath() string {
 
-	filePath := fmt.Sprintf("/home/%s/supervision-mikrotik-grafana/fichiers-config/routers.json", os.Getenv("SUDO_USER"))
+	filePath := fmt.Sprintf("/home/%s/mikrotik-grafana/fichiers-config/routers.json", os.Getenv("SUDO_USER"))
 	return filePath
 }
 
@@ -141,7 +141,7 @@ func probeAll() {
 		writeJSON(routers)
 
 		fmt.Println("--- Mise à jour terminée.")
-		time.Sleep(time.Second * 30)
+		time.Sleep(time.Second * 30) // Durée entre chaque rafraîchissement
 	}
 }
 
