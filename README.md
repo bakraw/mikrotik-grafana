@@ -6,6 +6,8 @@
 
 *conf* contient les fichiers de configuration utilisés par les composants.
 
+Le dashboard est une version modifiée de [Mikrotik monitoring](https://grafana.com/grafana/dashboards/14420-mikrotik-monitoring/) par *igorkha*.
+
 ## Mise en place
 
 ### Téléchargement
@@ -21,6 +23,8 @@ rm -rf *.tar.gz
 ```
 
 ### Lancement
+
+> N. B.- Ajouter des services *systemd* pour chaque exécutable est recommandé pour éviter d'avoir à les relancer manuellement à chaque redémarrage.
 
 Lancer Prometheus:
 ```bash
@@ -70,7 +74,7 @@ Ajouter deux sources de données:
 
 ![Config data source Prometheus](https://github.com/bakraw/mikrotik-grafana/assets/161661948/cd5f8abe-a194-4a92-9e77-a2ad1b673a86)
 
-Dans la barre latérale: *Dashboards*, puis *New* > N. B.- *Import* > *Upload dashboard JSON file* , et choisir ```~/mikrotik-grafana/fichiers-config/grafana_dashboard.json```.
+Dans la barre latérale: *Dashboards*, puis *New* > *Import* > *Upload dashboard JSON file* , et choisir ```~/mikrotik-grafana/fichiers-config/grafana_dashboard.json```.
 
 ## Ajout et supression de routeur
 
