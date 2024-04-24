@@ -88,17 +88,19 @@ cd ~/mikrotik-grafana/bin/
 
 La supression doit être faite manuellement (car flemme d'ajouter la fonctionnalité) mais il suffit de supprimer les entrées correspondantes dans *routers.json* et *prometheus_targets.json*.
 
-Ex: si l'on souhaite supprimer le routeur *8.8.8.8*:
-- Dans *routers.json*, tout supprimer entre les lignes marquées (crochets inclus):
+Ex: si l'on souhaite supprimer le routeur *8.8.8.8*, tout supprimer entre les lignes marquées:
+- Dans *routers.json*:
   ```json
     [
-        {  <------------------------>
+        <------------------------>
+        {  
             "ip": "8.8.8.8",
             "lat": 45.431299,
             "lon": 4.38876,
             "adresse": "1 Rue du Général Leclerc 42100 Saint-Étienne",
             "statut": 0
-        }, <------------------------>
+        }, 
+        <------------------------>
         {
             "ip": "1.1.1.1",
             "lat": 45.431154,
@@ -108,7 +110,7 @@ Ex: si l'on souhaite supprimer le routeur *8.8.8.8*:
         }
     ]
   ```
-- Dans *prometheus_targets.json*, supprimer la ligne marquée:
+- Dans *prometheus_targets.json*:
   ```json
     [
         {
@@ -116,7 +118,9 @@ Ex: si l'on souhaite supprimer le routeur *8.8.8.8*:
                 "job": "mikrotik"
             },
             "targets": [
-                "8.8.8.8", <----------
+                <------------------------>
+                "8.8.8.8",
+                <------------------------>
                 "1.1.1.1"
             ]
         }
