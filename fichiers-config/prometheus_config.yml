@@ -20,7 +20,7 @@ scrape_configs:
   - job_name: 'snmp'
     file_sd_configs:
       - files:
-        - '../geomap-routeurs/prometheus_targets.json' # <---- Chemin vers prometheus_targets.json
+        - 'prometheus_targets.json' # <---- Chemin vers prometheus_targets.json
     metrics_path: /snmp
     params:
       module: [mikrotik]
