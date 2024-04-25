@@ -1,4 +1,4 @@
-module api-json
+module mikromap-api
 
 go 1.19
 

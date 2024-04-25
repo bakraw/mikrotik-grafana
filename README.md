@@ -2,7 +2,7 @@
 
 ### Code et fichiers de configuration pour la supervision de routeurs Mikrotik via Grafana, Prometheus, SNMP Exporter.
 
-*src* contient *outil-cli* qui permet d'ajouter un nouveau routeur à tous les fichiers nécessaires, et *api-json*, un serveur HTTP qui transmet les informations au panel Geomap de Grafana.
+*src* contient *mikromap-cli* qui permet d'ajouter un nouveau routeur à tous les fichiers nécessaires, et *mikromap-api*, un serveur HTTP qui transmet les informations au panel Geomap de Grafana.
 
 *conf* contient les fichiers de configuration utilisés par les composants.
 
@@ -12,7 +12,7 @@ Le dashboard est une version modifiée de [Mikrotik monitoring](https://grafana.
 
 ### Téléchargement
 
-Télécharger les binaires stand-alone de [Grafana](https://grafana.com/get/?tab=self-managed), [Prometheus](https://prometheus.io/download/), [SNMP-Exporter](https://github.com/prometheus/snmp_exporter/releases) et de [ce dépôt](https://github.com/bakraw/mikrotik-grafana/releases).
+Télécharger les binaires stand-alone de [Grafana](https://grafana.com/get/?tab=self-managed), [Prometheus](https://prometheus.io/download/), [SNMP-Exporter](https://github.com/prometheus/snmp_exporter/releases) et de [ce dépôt](https://github.com/bakraw/mikrotik-grafana/releases) (ou le clôner).
 
 Depuis le dossier où ils ont été téléchargés, placer dans le répertoire personnel et extraire:
 ```bash
@@ -28,12 +28,12 @@ rm -rf *.tar.gz
 
 Lancer Prometheus:
 ```bash
-~/prometheus*/prometheus --config.file=$HOME/mikrotik-grafana-release/fichiers-config/prometheus_config.yml
+~/prometheus*/prometheus --config.file=$HOME/mikrotik-grafana/fichiers-config/prometheus_config.yml
 ```
 
 Lancer SNMP Exporter:
 ```bash
-~/snmp_exporter*/snmp_exporter --config.file=$HOME/mikrotik-grafana-release/fichiers-config/snmp_config.yml
+~/snmp_exporter*/snmp_exporter --config.file=$HOME/mikrotik-grafana/fichiers-config/snmp_config.yml
 ```
 
 Lancer Grafana:
@@ -45,7 +45,7 @@ cd ~/grafana*/bin/
 Lancer l'API pour la carte:
 ```bash
 cd ~/mikrotik-grafana/bin/
-sudo ./api-json
+sudo ./mikromap-api
 ```
 
 > N. B.- L'API doit obligatoirement être lancée en sudo pour que les pings fonctionnent.
@@ -74,7 +74,7 @@ Ajouter deux sources de données:
 
 ![Config data source Prometheus](https://github.com/bakraw/mikrotik-grafana/assets/161661948/cd5f8abe-a194-4a92-9e77-a2ad1b673a86)
 
-Dans la barre latérale: *Dashboards*, puis *New* > *Import* > *Upload dashboard JSON file* , et choisir ```~/mikrotik-grafana/fichiers-config/grafana_dashboard.json```.
+Dans la barre latérale: *Dashboards*, puis *New* > *Import* > *Upload dashboard JSON file* , et choisir ```~/mikrotik-grafana/conf/grafana_dashboard.json```.
 
 ## Ajout et supression de routeur
 
@@ -83,7 +83,7 @@ Dans la barre latérale: *Dashboards*, puis *New* > *Import* > *Upload dashboard
 L'ajout de routeur à la supervision se fait via *outil-cli*:
 ```bash
 cd ~/mikrotik-grafana/bin/
-./outil-cli
+./mikromap-cli
 ```
 
 > N. B.- L'adresse entrée n'a pas besoin d'être parfaitement écrite (pas besoin d'accents, tirets, etc.) mais veiller à inclure un minimum d'informations pour que l'API renvoie les bonnes coordonnées (ex: *1 rue leclerc st etienne* suffit à obtenir *1 Rue du Général Leclerc 42100 Saint-Étienne*)
