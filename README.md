@@ -18,7 +18,10 @@ Depuis le dossier où ils ont été téléchargés, placer dans le répertoire p
 ```bash
 mv *.tar.gz ~
 cd ~
-tar -xf *.tar.gz
+tar -xf mikrotik*
+tar -xf grafana*
+tar -xf prometheus*
+tar -xf snmp_exporter*
 rm -rf *.tar.gz
 ```
 
