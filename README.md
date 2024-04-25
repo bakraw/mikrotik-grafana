@@ -12,7 +12,7 @@ Le dashboard est une version modifiée de [Mikrotik monitoring](https://grafana.
 
 ### Téléchargement
 
-Télécharger les binaires stand-alone de [Grafana](https://grafana.com/get/?tab=self-managed), [Prometheus](https://prometheus.io/download/), [SNMP-Exporter](https://github.com/prometheus/snmp_exporter/releases) et de [ce dépôt](https://github.com/bakraw/mikrotik-grafana/releases) (ou le clôner).
+Télécharger les binaires stand-alone de [Grafana](https://grafana.com/get/?tab=self-managed), [Prometheus](https://prometheus.io/download/), [SNMP-Exporter](https://github.com/prometheus/snmp_exporter/releases) et de [ce dépôt](https://github.com/bakraw/mikrotik-grafana/releases) (ou le clôner et le build).
 
 Depuis le dossier où ils ont été téléchargés, placer dans le répertoire personnel et extraire:
 ```bash
@@ -28,12 +28,12 @@ rm -rf *.tar.gz
 
 Lancer Prometheus:
 ```bash
-~/prometheus*/prometheus --config.file=$HOME/mikrotik-grafana/fichiers-config/prometheus_config.yml
+~/prometheus*/prometheus --config.file=$HOME/mikrotik-grafana/conf/prometheus_config.yml
 ```
 
 Lancer SNMP Exporter:
 ```bash
-~/snmp_exporter*/snmp_exporter --config.file=$HOME/mikrotik-grafana/fichiers-config/snmp_config.yml
+~/snmp_exporter*/snmp_exporter --config.file=$HOME/mikrotik-grafana/conf/snmp_config.yml
 ```
 
 Lancer Grafana:
