@@ -105,7 +105,7 @@ func probeIP(IPaddr string) int {
 	}
 	pinger.Count = 1 // Nombre de paquets à envoyer.
 	pinger.SetPrivileged(true)
-	pinger.Timeout = time.Millisecond * 20 // Durée avant time out (en time.Duration).
+	pinger.Timeout = time.Millisecond * 50 // Durée avant time out (en time.Duration).
 
 	// Exécution du ping
 	err = pinger.Run()
