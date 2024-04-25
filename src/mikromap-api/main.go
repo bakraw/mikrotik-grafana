@@ -40,7 +40,7 @@ func readJSON() []Router {
 	// Lecture du fichier
 	content, err := os.ReadFile(getPath())
 	if err != nil {
-		log.Fatalf("--- Erreur lors de la lecture du fichier JSON:\n%s", err)
+		log.Fatalf("--- Erreur lors de la lecture du fichier JSON (vérifier que l'exécutable a bien été lancé en sudo):\n%s", err)
 	}
 
 	// Traitement des données

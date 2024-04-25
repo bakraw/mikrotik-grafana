@@ -237,7 +237,7 @@ func addRouter() {
 func main() {
 
 	var n int
-	fmt.Print(">>> Nombre de routeurs à ajouter: ")
+	fmt.Print("Nombre de routeurs à ajouter >>> ")
 	n, err := fmt.Scanln(&n)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
