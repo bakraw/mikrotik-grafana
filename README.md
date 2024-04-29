@@ -81,9 +81,7 @@ Dans la barre latérale: *Dashboards*, puis *New* > *Import* > *Upload dashboard
 
 ## Ajout et supression de routeur
 
-### Ajout
-
-L'ajout de routeur à la supervision se fait via *outil-cli*:
+L'ajout de routeur à la supervision se fait via *mikromap-cli*:
 ```bash
 cd ~/mikrotik-grafana/bin/
 ./mikromap-cli
@@ -93,43 +91,4 @@ cd ~/mikrotik-grafana/bin/
 
 ### Supression
 
-La supression doit être faite manuellement (car flemme d'ajouter la fonctionnalité) mais il suffit de supprimer les entrées correspondantes dans *routers.json* et *prometheus_targets.json*.
-
-Ex: si l'on souhaite supprimer le routeur *8.8.8.8*, tout supprimer entre les lignes marquées:
-- Dans *routers.json*:
-  ```json
-    [
-        <------------------------>
-        {  
-            "ip": "8.8.8.8",
-            "lat": 45.431299,
-            "lon": 4.38876,
-            "adresse": "1 Rue du Général Leclerc 42100 Saint-Étienne",
-            "statut": 0
-        }, 
-        <------------------------>
-        {
-            "ip": "1.1.1.1",
-            "lat": 45.431154,
-            "lon": 4.388611,
-            "adresse": "2 Rue du Général Leclerc 42100 Saint-Étienne",
-            "statut": 0
-        }
-    ]
-  ```
-- Dans *prometheus_targets.json*:
-  ```json
-    [
-        {
-            "labels": {
-                "job": "mikrotik"
-            },
-            "targets": [
-                <------------------------>
-                "8.8.8.8",
-                <------------------------>
-                "1.1.1.1"
-            ]
-        }
-    ]
-  ```
+Pour supprimer un routeur utiliser *mikromap-cli* et entrer un nombre négatif de routeurs à ajouter. Il n'y a besoin que de l'adresse IP pour supprimer un routeur.
