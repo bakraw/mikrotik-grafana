@@ -130,7 +130,7 @@ func readJSON() []Router {
 func writeJSON(data []Router) {
 
 	// Ouverture du fichier
-	content, err := os.OpenFile(getPath("routers.json"), os.O_WRONLY, os.ModePerm)
+	content, err := os.OpenFile(getPath("routers.json"), os.O_WRONLY|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
@@ -170,7 +170,7 @@ func readPromTargets() []PromTargets {
 func writePromTargets(data []PromTargets) {
 
 	// Ouverture du fichier
-	content, err := os.OpenFile(getPath("prometheus_targets.json"), os.O_WRONLY, os.ModePerm)
+	content, err := os.OpenFile(getPath("prometheus_targets.json"), os.O_WRONLY|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
@@ -191,7 +191,7 @@ func addRouter() {
 	var addrPost string
 	var addrIP string
 
-	fmt.Println("--- Ajouter une adresse à la supervision")
+	fmt.Println("--- Ajouter un routeur à la supervision")
 
 	// Récupération adresse postale
 	fmt.Print("Adresse postale >> ")
@@ -210,7 +210,10 @@ func addRouter() {
 
 	// Récupération adresse IP
 	fmt.Print("Adresse IP >> ")
-	fmt.Scanln(&addrIP)
+	_, err := fmt.Scanln(&addrIP)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
+	}
 
 	// Ajout d'un nouveau routeur dans routers.json
 	dataR := readJSON()
@@ -234,6 +237,39 @@ func addRouter() {
 	fmt.Println("--- Routeur ajouté")
 }
 
+// Fonction principale qui retire un routeur des fichiers.
+// Ne prend rien en entrée et ne renvoie rien.
+func removeRouter() {
+	var addrIP string
+
+	fmt.Println("--- Retirer un routeur de la supervision")
+
+	fmt.Print("Adresse IP du routeur à supprimer >>> ")
+	_, err := fmt.Scanln(&addrIP)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
+	}
+
+	dataR := readJSON()
+	dataT := readPromTargets()
+
+	for i, v := range dataR {
+		if v.IP == addrIP {
+			dataR = append(dataR[0:i], dataR[i+1:]...)
+		}
+	}
+	writeJSON(dataR)
+
+	for i, v := range dataT[0].Targets {
+		if v == addrIP {
+			dataT[0].Targets = append(dataT[0].Targets[0:i], dataT[0].Targets[i+1:]...)
+		}
+	}
+	writePromTargets(dataT)
+
+	fmt.Println("--- Routeur supprimé")
+}
+
 func main() {
 
 	var n int
@@ -243,8 +279,13 @@ func main() {
 		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
 	}
 
-	for i := 0; i < n; i++ {
-		addRouter()
+	if n >= 0 {
+		for i := 0; i < n; i++ {
+			addRouter()
+		}
+	} else {
+		for i := 0; i < -n; i++ {
+			removeRouter()
+		}
 	}
-
 }
