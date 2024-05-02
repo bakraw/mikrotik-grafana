@@ -81,14 +81,18 @@ Dans la barre latérale: *Dashboards*, puis *New* > *Import* > *Upload dashboard
 
 ## Ajout et supression de routeur
 
+### Ajout
+
 L'ajout de routeur à la supervision se fait via *mikromap-cli*:
 ```bash
 cd ~/mikrotik-grafana/bin/
 ./mikromap-cli
 ```
 
+Si l'adresse à ajouter correspond à un Watchguard, l'indiquer en ajoutant un *W* sans espace avant l'adresse IP pour éviter des problèmes de compatibilité (ex: ***W**8.8.8.8*)
+
 > N. B.- L'adresse entrée n'a pas besoin d'être parfaitement écrite (pas besoin d'accents, tirets, etc.) mais veiller à inclure un minimum d'informations pour que l'API renvoie les bonnes coordonnées (ex: *1 rue leclerc st etienne* suffit à obtenir *1 Rue du Général Leclerc 42100 Saint-Étienne*)
 
 ### Supression
 
-Pour supprimer un routeur utiliser *mikromap-cli* et entrer un nombre négatif de routeurs à ajouter. Il n'y a besoin que de l'adresse IP pour supprimer un routeur.
+Pour supprimer un routeur, utiliser *mikromap-cli* et entrer un nombre négatif de routeurs à ajouter. Il n'y a besoin que de l'adresse IP pour supprimer un routeur, et le préfixe *W* n'est pas nécessaire pour désigner un Watchguard
