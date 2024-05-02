@@ -225,6 +225,12 @@ func addRouter() {
 	// Ajout d'un nouveau routeur dans routers.json
 	dataR := readJSON()
 
+	for _, v := range dataR {
+		if v.IP == addrIP {
+			log.Fatal("--- Erreur: cette adresse IP existe déjà.")
+		}
+	}
+
 	newRouter := Router{
 		IP:      addrIP,
 		Lat:     lat,
