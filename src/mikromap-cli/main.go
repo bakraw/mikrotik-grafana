@@ -145,13 +145,13 @@ func writeJSON(data []Router) {
 }
 
 // Récupère les données du fichier des cibles Prometheus JSON.
-// Ne prend rien en entrée et renvoie les données dans un slice de struct []PromTargets.
-func readPromTargets(file string) []PromTargets {
+// Prend le fichier à lire en entrée et renvoie les données dans un slice de struct []PromTargets.
+func readPromTargets(target string) []PromTargets {
 
 	var data []PromTargets
 
 	// Lecture du fichier
-	content, err := os.ReadFile(getPath(file))
+	content, err := os.ReadFile(getPath(target))
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la lecture du fichier JSON:\n%s", err)
 	}
@@ -167,10 +167,10 @@ func readPromTargets(file string) []PromTargets {
 
 // Ecrit par-dessus le fichier de cibles Prometheus JSON.
 // Prend en entrée les données à écrire ([]PromTargets) et le nom du fichier de conf (string) et ne renvoie rien.
-func writePromTargets(data []PromTargets, file string) {
+func writePromTargets(data []PromTargets, target string) {
 
 	// Ouverture du fichier
-	content, err := os.OpenFile(getPath(file), os.O_WRONLY|os.O_TRUNC, os.ModePerm)
+	content, err := os.OpenFile(getPath(target), os.O_WRONLY|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
