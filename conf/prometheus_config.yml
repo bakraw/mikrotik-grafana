@@ -17,13 +17,28 @@ scrape_configs:
     static_configs:
     - targets: ['localhost:9100']
 
-  - job_name: 'snmp'
+  - job_name: 'snmp_mgmt'
     file_sd_configs:
       - files:
-        - 'prometheus_targets.json' # <---- Chemin vers prometheus_targets.json
+        - 'mgmt_targets.json' # <---- Chemin vers mgmt_targets.json
     metrics_path: /snmp
     params:
-      module: [mikrotik]
+      module: [mgmt]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9116
+
+  - job_name: 'snmp_private'
+    file_sd_configs:
+      - files:
+        - 'private_targets.json' # <---- Chemin vers private_targets.json
+    metrics_path: /snmp
+    params:
+      module: [private]
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

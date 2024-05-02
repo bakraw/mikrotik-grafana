@@ -126,7 +126,7 @@ func readJSON() []Router {
 }
 
 // Ecrit par-dessus le fichier JSON.
-// Prend en entrée les données à écrire et ne renvoie rien.
+// Prend en entrée les données à écrire ([]Router) et ne renvoie rien.
 func writeJSON(data []Router) {
 
 	// Ouverture du fichier
@@ -145,13 +145,13 @@ func writeJSON(data []Router) {
 }
 
 // Récupère les données du fichier des cibles Prometheus JSON.
-// Ne prend rien en entrée et renvoie les données dans un slice de struct []PromTargets.
-func readPromTargets() []PromTargets {
+// Prend le fichier à lire en entrée et renvoie les données dans un slice de struct []PromTargets.
+func readPromTargets(target string) []PromTargets {
 
 	var data []PromTargets
 
 	// Lecture du fichier
-	content, err := os.ReadFile(getPath("prometheus_targets.json"))
+	content, err := os.ReadFile(getPath(target))
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la lecture du fichier JSON:\n%s", err)
 	}
@@ -166,11 +166,11 @@ func readPromTargets() []PromTargets {
 }
 
 // Ecrit par-dessus le fichier de cibles Prometheus JSON.
-// Prend en entrée les données à écrire et ne renvoie rien.
-func writePromTargets(data []PromTargets) {
+// Prend en entrée les données à écrire ([]PromTargets) et le nom du fichier de conf (string) et ne renvoie rien.
+func writePromTargets(data []PromTargets, target string) {
 
 	// Ouverture du fichier
-	content, err := os.OpenFile(getPath("prometheus_targets.json"), os.O_WRONLY|os.O_TRUNC, os.ModePerm)
+	content, err := os.OpenFile(getPath(target), os.O_WRONLY|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de l'ouverture du fichier JSON pour écriture:\n%s", err)
 	}
@@ -190,6 +190,7 @@ func addRouter() {
 
 	var addrPost string
 	var addrIP string
+	var isWatchguard bool = false
 
 	fmt.Println("--- Ajouter un routeur à la supervision")
 
@@ -215,6 +216,12 @@ func addRouter() {
 		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
 	}
 
+	// Vérification et supression préfixe "W" pour Watchguard
+	if strings.HasPrefix(addrIP, "W") {
+		isWatchguard = true
+		addrIP = strings.TrimLeft(addrIP, "W")
+	}
+
 	// Ajout d'un nouveau routeur dans routers.json
 	dataR := readJSON()
 
@@ -229,10 +236,17 @@ func addRouter() {
 	dataR = append(dataR, newRouter)
 	writeJSON(dataR)
 
-	// Ajout IP dans prometheus_targets.json
-	dataT := readPromTargets()
-	dataT[0].Targets = append(dataT[0].Targets, addrIP)
-	writePromTargets(dataT)
+	// Ajout IP au job commun à tous les appareils
+	dataM := readPromTargets("mgmt_targets.json")
+	dataM[0].Targets = append(dataM[0].Targets, addrIP)
+	writePromTargets(dataM, "mgmt_targets.json")
+
+	// Si l'adresse IP n'est pas associée à un Watchguard, l'ajouter au job spécifique aux Mikrotiks.
+	if !isWatchguard {
+		dataP := readPromTargets("private_targets.json")
+		dataP[0].Targets = append(dataP[0].Targets, addrIP)
+		writePromTargets(dataP, "private_targets.json")
+	}
 
 	fmt.Println("--- Routeur ajouté")
 }
@@ -244,6 +258,7 @@ func removeRouter() {
 
 	fmt.Println("--- Retirer un routeur de la supervision")
 
+	// Récupération adresse IP
 	fmt.Print("Adresse IP du routeur à supprimer >>> ")
 	_, err := fmt.Scanln(&addrIP)
 	if err != nil {
@@ -251,8 +266,10 @@ func removeRouter() {
 	}
 
 	dataR := readJSON()
-	dataT := readPromTargets()
+	dataM := readPromTargets("mgmt_targets.json")
+	dataP := readPromTargets("private_targets.json")
 
+	// Suppression du struct dataR puis écriture de routers.json
 	for i, v := range dataR {
 		if v.IP == addrIP {
 			dataR = append(dataR[0:i], dataR[i+1:]...)
@@ -260,12 +277,21 @@ func removeRouter() {
 	}
 	writeJSON(dataR)
 
-	for i, v := range dataT[0].Targets {
+	// Suppression du struct dataM puis écriture de mgmt_targets.json
+	for i, v := range dataM[0].Targets {
 		if v == addrIP {
-			dataT[0].Targets = append(dataT[0].Targets[0:i], dataT[0].Targets[i+1:]...)
+			dataM[0].Targets = append(dataM[0].Targets[0:i], dataM[0].Targets[i+1:]...)
 		}
 	}
-	writePromTargets(dataT)
+	writePromTargets(dataM, "mgmt_targets.json")
+
+	// Suppression du struct dataP puis écriture de private_targets.json
+	for i, v := range dataP[0].Targets {
+		if v == addrIP {
+			dataP[0].Targets = append(dataP[0].Targets[0:i], dataP[0].Targets[i+1:]...)
+		}
+	}
+	writePromTargets(dataP, "private_targets.json")
 
 	fmt.Println("--- Routeur supprimé")
 }
