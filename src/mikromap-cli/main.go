@@ -243,15 +243,15 @@ func addRouter() {
 	writeJSON(dataR)
 
 	// Ajout IP au job commun à tous les appareils
-	dataM := readPromTargets("mgmt_targets.json")
+	dataM := readPromTargets("global_targets.json")
 	dataM[0].Targets = append(dataM[0].Targets, addrIP)
-	writePromTargets(dataM, "mgmt_targets.json")
+	writePromTargets(dataM, "global_targets.json")
 
 	// Si l'adresse IP n'est pas associée à un Watchguard, l'ajouter au job spécifique aux Mikrotiks.
 	if !isWatchguard {
-		dataP := readPromTargets("private_targets.json")
+		dataP := readPromTargets("mikrotik_targets.json")
 		dataP[0].Targets = append(dataP[0].Targets, addrIP)
-		writePromTargets(dataP, "private_targets.json")
+		writePromTargets(dataP, "mikrotik_targets.json")
 	}
 
 	fmt.Println("--- Routeur ajouté")
@@ -272,8 +272,8 @@ func removeRouter() {
 	}
 
 	dataR := readJSON()
-	dataM := readPromTargets("mgmt_targets.json")
-	dataP := readPromTargets("private_targets.json")
+	dataM := readPromTargets("global_targets.json")
+	dataP := readPromTargets("mikrotik_targets.json")
 
 	// Suppression du struct dataR puis écriture de routers.json
 	for i, v := range dataR {
@@ -283,21 +283,21 @@ func removeRouter() {
 	}
 	writeJSON(dataR)
 
-	// Suppression du struct dataM puis écriture de mgmt_targets.json
+	// Suppression du struct dataM puis écriture de global_targets.json
 	for i, v := range dataM[0].Targets {
 		if v == addrIP {
 			dataM[0].Targets = append(dataM[0].Targets[0:i], dataM[0].Targets[i+1:]...)
 		}
 	}
-	writePromTargets(dataM, "mgmt_targets.json")
+	writePromTargets(dataM, "global_targets.json")
 
-	// Suppression du struct dataP puis écriture de private_targets.json
+	// Suppression du struct dataP puis écriture de mikrotik_targets.json
 	for i, v := range dataP[0].Targets {
 		if v == addrIP {
 			dataP[0].Targets = append(dataP[0].Targets[0:i], dataP[0].Targets[i+1:]...)
 		}
 	}
-	writePromTargets(dataP, "private_targets.json")
+	writePromTargets(dataP, "mikrotik_targets.json")
 
 	fmt.Println("--- Routeur supprimé")
 }
