@@ -25,6 +25,30 @@ tar -xf snmp_exporter*
 rm -rf *.tar.gz
 ```
 
+### Configuration
+
+#### Mikrotik
+
+Sur les routeurs:
+1. Supprimer la communauté *public* par défaut et en créer une nouvelle nommée *private*. 
+2. Limiter la communauté à la lecture seule.
+3. Mettre la sécurité sur *private*.
+4. *SHA* en protocole d'authentification et *AES* en protocole de chiffrement.
+5. Indiquer les mots de passe d'authentification et de chiffrement.
+6. Limiter l'accès à la communauté à l'IP du serveur de supervision (*address* en CLI, champ *Addresses* dans WinBox).
+
+Via WinBox, ces options se trouvent dans *IP* > *SNMP* puis *Communities*.
+
+> N.B.- Pour l'instant, la paire de mots de passe doit être identique sur tous les routeurs / pares-feu. Le fichier de configuration de SNMP Exporter fait plus de 100 000 lignes de long et automatiser sa modification est une purge, tandis que Prometheus associe les configs d'authentification aux jobs et non aux cibles (donc il faudrait créer un job par routeur, et redémarrer Prometheus à chaque ajout). Désolé :(
+
+#### Watchguard
+
+Sur les pares-feu, veiller à ce que le protocole SNMP soit autorisé pour l'IP du serveur de supervision, et configurer la communauté de la même manière que sur les routeurs Mikrotik.
+
+#### Fichier de configuration SNMP Exporter
+
+Dans *snmp_config.yml*, indiquer les mot de passe d'authentification et de chiffrement SNMP (en haut du fichier, *password* et *priv_password*).
+
 ### Lancement
 
 > N. B.- Ajouter des services *systemd* pour chaque exécutable est recommandé pour éviter d'avoir à les relancer manuellement à chaque redémarrage.
@@ -91,8 +115,8 @@ cd ~/mikrotik-grafana/bin/
 
 Si l'adresse à ajouter correspond à un Watchguard, l'indiquer en ajoutant un *W* sans espace avant l'adresse IP pour éviter des problèmes de compatibilité (ex: ***W**8.8.8.8*)
 
-> N. B.- L'adresse entrée n'a pas besoin d'être parfaitement écrite (pas besoin d'accents, tirets, etc.) mais veiller à inclure un minimum d'informations pour que l'API renvoie les bonnes coordonnées (ex: *1 rue leclerc st etienne* suffit à obtenir *1 Rue du Général Leclerc 42100 Saint-Étienne*)
+> N. B.- L'adresse postale entrée n'a pas besoin d'être parfaitement écrite (pas besoin d'accents, tirets, etc.) mais veiller à inclure un minimum d'informations pour que l'API renvoie les bonnes coordonnées (ex: *1 rue leclerc st etienne* suffit à obtenir *1 Rue du Général Leclerc 42100 Saint-Étienne*)
 
 ### Supression
 
-Pour supprimer un routeur, utiliser *mikromap-cli* et entrer un nombre négatif de routeurs à ajouter. Il n'y a besoin que de l'adresse IP pour supprimer un routeur, et le préfixe *W* n'est pas nécessaire pour désigner un Watchguard
+Pour supprimer un routeur, utiliser *mikromap-cli* et entrer un nombre négatif de routeurs à ajouter. Il n'y a besoin que de l'adresse IP pour supprimer un routeur, et le préfixe *W* n'est pas nécessaire pour désigner un Watchguard.
