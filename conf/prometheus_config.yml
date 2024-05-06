@@ -17,13 +17,14 @@ scrape_configs:
     static_configs:
     - targets: ['localhost:9100']
 
-  - job_name: 'snmp_mgmt'
+  - job_name: 'snmp_global'
     file_sd_configs:
       - files:
-        - 'mgmt_targets.json' # <---- Chemin vers mgmt_targets.json
+        - 'global_targets.json' # <---- Chemin vers global_targets.json
     metrics_path: /snmp
     params:
-      module: [mgmt]
+      module: [global]
+      auth: [private]
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -32,13 +33,14 @@ scrape_configs:
       - target_label: __address__
         replacement: localhost:9116
 
-  - job_name: 'snmp_private'
+  - job_name: 'snmp_mikrotik'
     file_sd_configs:
       - files:
-        - 'private_targets.json' # <---- Chemin vers private_targets.json
+        - 'mikrotik_targets.json' # <---- Chemin vers mikrotik_targets.json
     metrics_path: /snmp
     params:
-      module: [private]
+      module: [mikrotik]
+      auth: [private]
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
