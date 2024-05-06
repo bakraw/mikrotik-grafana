@@ -39,6 +39,8 @@ Sur les routeurs:
 
 Via WinBox, ces options se trouvent dans *IP* > *SNMP* puis *Communities*.
 
+![Configuration communauté SNMP via WinBox](https://github.com/bakraw/mikrotik-grafana/assets/161661948/c6bbd279-0839-4abb-8183-d13a1e1e7255)
+
 > N.B.- Pour l'instant, la paire de mots de passe doit être identique sur tous les routeurs / pares-feu. Le fichier de configuration de SNMP Exporter fait plus de 100 000 lignes de long et automatiser sa modification est une purge, tandis que Prometheus associe les configs d'authentification aux jobs et non aux cibles (donc il faudrait créer un job par routeur, et redémarrer Prometheus à chaque ajout). Désolé :(
 
 #### Watchguard
