@@ -15,11 +15,12 @@ import (
 
 // Structure routers.json
 type Router struct {
-	IP      string  `json:"ip"`
-	Lat     float64 `json:"lat"`
-	Lon     float64 `json:"lon"`
-	Adresse string  `json:"adresse"`
-	Statut  int     `json:"statut"`
+	IP       string  `json:"ip"`
+	Lat      float64 `json:"lat"`
+	Lon      float64 `json:"lon"`
+	Adresse  string  `json:"adresse"`
+	Username string  `json:"username"`
+	Statut   int     `json:"statut"`
 }
 
 // Structure prometheus_targets.json
@@ -188,11 +189,35 @@ func writePromTargets(data []PromTargets, target string) {
 // Ne prend rien en entrée et ne renvoie rien.
 func addRouter() {
 
-	var addrPost string
-	var addrIP string
+	var addrPost, addrIP, username string
 	var isWatchguard bool = false
 
+	// Lecture fichiers
+	dataRouters := readJSON()
+	dataGlobal := readPromTargets("global_targets.json")
+	dataMikrotik := readPromTargets("mikrotik_targets.json")
+
 	fmt.Println("--- Ajouter un routeur à la supervision")
+
+	// Récupération adresse IP
+	fmt.Print("Adresse IP >> ")
+	_, err := fmt.Scanln(&addrIP)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
+	}
+
+	// Vérification IP déjà enregistrée
+	for _, v := range dataRouters {
+		if v.IP == addrIP {
+			log.Fatal("--- Erreur: cette adresse IP existe déjà.")
+		}
+	}
+
+	// Vérification et supression préfixe "W" pour Watchguard
+	if strings.HasPrefix(addrIP, "W") {
+		isWatchguard = true
+		addrIP = strings.TrimLeft(addrIP, "W")
+	}
 
 	// Récupération adresse postale
 	fmt.Print("Adresse postale >> ")
@@ -209,49 +234,33 @@ func addRouter() {
 	lat, lon, adresse := extractCoords(resBody)
 	fmt.Printf("- %s\n- %f, %f\n", adresse, lat, lon)
 
-	// Récupération adresse IP
-	fmt.Print("Adresse IP >> ")
-	_, err := fmt.Scanln(&addrIP)
-	if err != nil {
-		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
-	}
-
-	// Vérification et supression préfixe "W" pour Watchguard
-	if strings.HasPrefix(addrIP, "W") {
-		isWatchguard = true
-		addrIP = strings.TrimLeft(addrIP, "W")
+	// Récupération entreprise
+	fmt.Print("Utilisateur Grafana associé >>> ")
+	if scanner.Scan() {
+		username = scanner.Text()
 	}
 
 	// Ajout d'un nouveau routeur dans routers.json
-	dataR := readJSON()
-
-	for _, v := range dataR {
-		if v.IP == addrIP {
-			log.Fatal("--- Erreur: cette adresse IP existe déjà.")
-		}
-	}
-
 	newRouter := Router{
-		IP:      addrIP,
-		Lat:     lat,
-		Lon:     lon,
-		Adresse: adresse,
-		Statut:  0,
+		IP:       addrIP,
+		Lat:      lat,
+		Lon:      lon,
+		Adresse:  adresse,
+		Username: username,
+		Statut:   0,
 	}
 
-	dataR = append(dataR, newRouter)
-	writeJSON(dataR)
+	dataRouters = append(dataRouters, newRouter)
+	writeJSON(dataRouters)
 
 	// Ajout IP au job commun à tous les appareils
-	dataM := readPromTargets("global_targets.json")
-	dataM[0].Targets = append(dataM[0].Targets, addrIP)
-	writePromTargets(dataM, "global_targets.json")
+	dataGlobal[0].Targets = append(dataGlobal[0].Targets, addrIP)
+	writePromTargets(dataGlobal, "global_targets.json")
 
 	// Si l'adresse IP n'est pas associée à un Watchguard, l'ajouter au job spécifique aux Mikrotiks.
 	if !isWatchguard {
-		dataP := readPromTargets("mikrotik_targets.json")
-		dataP[0].Targets = append(dataP[0].Targets, addrIP)
-		writePromTargets(dataP, "mikrotik_targets.json")
+		dataMikrotik[0].Targets = append(dataMikrotik[0].Targets, addrIP)
+		writePromTargets(dataMikrotik, "mikrotik_targets.json")
 	}
 
 	fmt.Println("--- Routeur ajouté")
@@ -262,6 +271,11 @@ func addRouter() {
 func removeRouter() {
 	var addrIP string
 
+	// Lecture fichiers
+	dataRouters := readJSON()
+	dataGlobal := readPromTargets("global_targets.json")
+	dataMikrotik := readPromTargets("mikrotik_targets.json")
+
 	fmt.Println("--- Retirer un routeur de la supervision")
 
 	// Récupération adresse IP
@@ -271,33 +285,29 @@ func removeRouter() {
 		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
 	}
 
-	dataR := readJSON()
-	dataM := readPromTargets("global_targets.json")
-	dataP := readPromTargets("mikrotik_targets.json")
-
-	// Suppression du struct dataR puis écriture de routers.json
-	for i, v := range dataR {
+	// Suppression de l'élément du struct dataRouters puis écriture de routers.json
+	for i, v := range dataRouters {
 		if v.IP == addrIP {
-			dataR = append(dataR[0:i], dataR[i+1:]...)
+			dataRouters = append(dataRouters[0:i], dataRouters[i+1:]...)
 		}
 	}
-	writeJSON(dataR)
+	writeJSON(dataRouters)
 
-	// Suppression du struct dataM puis écriture de global_targets.json
-	for i, v := range dataM[0].Targets {
+	// Suppression de l'élément du struct dataGlobal puis écriture de global_targets.json
+	for i, v := range dataGlobal[0].Targets {
 		if v == addrIP {
-			dataM[0].Targets = append(dataM[0].Targets[0:i], dataM[0].Targets[i+1:]...)
+			dataGlobal[0].Targets = append(dataGlobal[0].Targets[0:i], dataGlobal[0].Targets[i+1:]...)
 		}
 	}
-	writePromTargets(dataM, "global_targets.json")
+	writePromTargets(dataGlobal, "global_targets.json")
 
-	// Suppression du struct dataP puis écriture de mikrotik_targets.json
-	for i, v := range dataP[0].Targets {
+	// Suppression de l'élément du struct dataMikrotik puis écriture de mikrotik_targets.json
+	for i, v := range dataMikrotik[0].Targets {
 		if v == addrIP {
-			dataP[0].Targets = append(dataP[0].Targets[0:i], dataP[0].Targets[i+1:]...)
+			dataMikrotik[0].Targets = append(dataMikrotik[0].Targets[0:i], dataMikrotik[0].Targets[i+1:]...)
 		}
 	}
-	writePromTargets(dataP, "mikrotik_targets.json")
+	writePromTargets(dataMikrotik, "mikrotik_targets.json")
 
 	fmt.Println("--- Routeur supprimé")
 }
@@ -305,6 +315,7 @@ func removeRouter() {
 func main() {
 
 	var n int
+
 	fmt.Print("Nombre de routeurs à ajouter >>> ")
 	_, err := fmt.Scanln(&n)
 	if err != nil {
