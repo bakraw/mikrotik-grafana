@@ -200,7 +200,7 @@ func addRouter() {
 	fmt.Println("--- Ajouter un routeur à la supervision")
 
 	// Récupération adresse IP
-	fmt.Print("Adresse IP >> ")
+	fmt.Print("\033[35mAdresse IP >> \033[0m")
 	_, err := fmt.Scanln(&addrIP)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
@@ -220,7 +220,7 @@ func addRouter() {
 	}
 
 	// Récupération adresse postale
-	fmt.Print("Adresse postale >> ")
+	fmt.Print("\033[33mAdresse postale >> \033[0m")
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanner.Scan() {
 		addrPost = scanner.Text()
@@ -235,7 +235,7 @@ func addRouter() {
 	fmt.Printf("- %s\n- %f, %f\n", adresse, lat, lon)
 
 	// Récupération entreprise
-	fmt.Print("Utilisateur Grafana associé >>> ")
+	fmt.Print("\033[36mUtilisateur Grafana associé >>> \033[0m")
 	if scanner.Scan() {
 		username = scanner.Text()
 	}
@@ -279,7 +279,7 @@ func removeRouter() {
 	fmt.Println("--- Retirer un routeur de la supervision")
 
 	// Récupération adresse IP
-	fmt.Print("Adresse IP du routeur à supprimer >>> ")
+	fmt.Print("\033[31mAdresse IP du routeur à supprimer >>> \033[0m")
 	_, err := fmt.Scanln(&addrIP)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
@@ -316,7 +316,7 @@ func main() {
 
 	var n int
 
-	fmt.Print("Nombre de routeurs à ajouter >>> ")
+	fmt.Print("\033[32mNombre de routeurs à ajouter >>> \033[0m")
 	_, err := fmt.Scanln(&n)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
