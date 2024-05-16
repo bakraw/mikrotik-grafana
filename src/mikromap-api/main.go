@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -92,7 +93,7 @@ func getMikromap(w http.ResponseWriter, r *http.Request) {
 		// On parcourt le slice dans le sens inverse pour ne pas modifier des éléments pas encore parcourus.
 		for i := len(dataRouters) - 1; i >= 0; i-- {
 			v := dataRouters[i]
-			if v.Username != user {
+			if !(strings.EqualFold(v.Username, user)) {
 				dataRouters = append(dataRouters[0:i], dataRouters[i+1:]...)
 			}
 		}
@@ -110,7 +111,7 @@ func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/mikromap", getMikromap)
 
-	log.Fatal(http.ListenAndServe(":3333", router))
+	log.Fatal(http.ListenAndServe("localhost:3333", router))
 }
 
 // Ping une adresse IP pour vérifier son état.
@@ -136,9 +137,8 @@ func probeIP(IPaddr string) int {
 	// Résultat
 	if pinger.Statistics().PacketsRecv == pinger.Statistics().PacketsSent {
 		return 1
-	} else {
-		return 0
 	}
+	return 0
 }
 
 // Teste toutes les IPs mentionnées dans un slice de struct puis ré-écrit le fichier JSON.
