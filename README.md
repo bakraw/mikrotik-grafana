@@ -32,8 +32,8 @@ rm -rf *.tar.gz
 Sur les routeurs:
 1. Supprimer la communauté *public* par défaut et en créer une nouvelle nommée *private*. 
 2. Limiter la communauté à la lecture seule.
-3. Mettre la sécurité sur *private*.
-4. *SHA* en protocole d'authentification et *AES* en protocole de chiffrement.
+3. Mettre la sécurité sur ```private```.
+4. ```SHA``` en protocole d'authentification et ```AES``` en protocole de chiffrement.
 5. Indiquer les mots de passe d'authentification et de chiffrement.
 6. Limiter l'accès à la communauté à l'IP du serveur de supervision (*address* en CLI, champ *Addresses* dans WinBox).
 
