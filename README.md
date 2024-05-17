@@ -45,7 +45,7 @@ Via WinBox, ces options se trouvent dans *IP* > *SNMP* puis *Communities*.
 
 #### Watchguard
 
-Sur les pare-feux, veiller à ce que les protocole SNMP (pour les infos) et ICMP (pour la vérification de l'état sur la carte) soit autorisé pour l'IP du serveur de supervision, et configurer la communauté de la même manière que sur les routeurs Mikrotik.
+Sur les pare-feux, veiller à ce que les protocoles SNMP (pour les infos) et ICMP (pour la vérification de l'état sur la carte) soit autorisé pour l'IP du serveur de supervision, et configurer la communauté de la même manière que sur les routeurs Mikrotik.
 
 #### Fichier de configuration SNMP Exporter
 
