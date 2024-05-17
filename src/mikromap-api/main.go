@@ -1,4 +1,3 @@
-// Dernière mise à jour: avril 2024
 package main
 
 import (
@@ -8,18 +7,21 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	probing "github.com/prometheus-community/pro-bing"
 )
 
+// Structure routers.json
 type Router struct {
-	IP      string  `json:"ip"`
-	Lat     float64 `json:"lat"`
-	Lon     float64 `json:"lon"`
-	Adresse string  `json:"adresse"`
-	Statut  int     `json:"statut"`
+	IP       string  `json:"ip"`
+	Lat      float64 `json:"lat"`
+	Lon      float64 `json:"lon"`
+	Adresse  string  `json:"adresse"`
+	Username string  `json:"username"`
+	Statut   int     `json:"statut"`
 }
 
 // Renvoie le chemin vers le fichier JSON.
@@ -72,14 +74,33 @@ func writeJSON(data []Router) {
 }
 
 // Traite les requêtes HTTP GET.
-// Renvoie simplement le contenu de routers.json
+// Renvoie le contenu de routers.json qui concerne l'utilisateur Grafana qui fait le call.
 // Prend en entrée un http.responseWriter et une http.Request.
 // Ne devrait être appelée que via HandleFunc().
-func getRoot(w http.ResponseWriter, r *http.Request) {
+func getMikromap(w http.ResponseWriter, r *http.Request) {
 
-	json.NewEncoder(w).Encode(readJSON())
+	// Récupération du nom d'utilisateur transmis par Grafana
+	user := r.URL.Query().Get("user")
 
-	fmt.Printf("Got GET request on /\n")
+	fmt.Printf("Requête GET entrante sur /mikromap (user = %s)\n", user)
+
+	// Récupération routers.json dans un struct
+	dataRouters := readJSON()
+
+	// Suppression dans le struct de tous les routeurs dont le Username n'est pas identique au paramètre reçu.
+	// Si le paramètre vaut admin, on saute cette étape.
+	if user != "admin" {
+		// On parcourt le slice dans le sens inverse pour ne pas modifier des éléments pas encore parcourus.
+		for i := len(dataRouters) - 1; i >= 0; i-- {
+			v := dataRouters[i]
+			if !(strings.EqualFold(v.Username, user)) {
+				dataRouters = append(dataRouters[0:i], dataRouters[i+1:]...)
+			}
+		}
+	}
+
+	// Envoi du struct modifié
+	json.NewEncoder(w).Encode(dataRouters)
 }
 
 // Traite les requêtes HTTP entrantes.
@@ -88,7 +109,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", getRoot)
+	router.HandleFunc("/mikromap", getMikromap)
 
 	log.Fatal(http.ListenAndServe("localhost:3333", router))
 }
@@ -105,7 +126,7 @@ func probeIP(IPaddr string) int {
 	}
 	pinger.Count = 1 // Nombre de paquets à envoyer.
 	pinger.SetPrivileged(true)
-	pinger.Timeout = time.Millisecond * 50 // Durée avant time out (en time.Duration).
+	pinger.Timeout = time.Millisecond * 100 // Durée avant time out (en time.Duration).
 
 	// Exécution du ping
 	err = pinger.Run()
@@ -116,9 +137,8 @@ func probeIP(IPaddr string) int {
 	// Résultat
 	if pinger.Statistics().PacketsRecv == pinger.Statistics().PacketsSent {
 		return 1
-	} else {
-		return 0
 	}
+	return 0
 }
 
 // Teste toutes les IPs mentionnées dans un slice de struct puis ré-écrit le fichier JSON.
