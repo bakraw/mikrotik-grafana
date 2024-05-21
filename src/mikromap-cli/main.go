@@ -1,4 +1,3 @@
-// Dernière mise à jour: avril 2024
 package main
 
 import (
