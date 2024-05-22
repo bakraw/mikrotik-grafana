@@ -22,6 +22,7 @@ type Router struct {
 	Adresse  string  `json:"adresse"`
 	Username string  `json:"username"`
 	Statut   int     `json:"statut"`
+	Visible  bool    `json:"visible"`
 }
 
 // Renvoie le chemin vers le fichier JSON.
@@ -115,7 +116,9 @@ func handleRequests() {
 }
 
 // Ping une adresse IP pour vérifier son état.
+// Utilisé par Grafana pour déterminer la couleur du point à afficher.
 // Prend en entrée un adresse IP (string) et renvoie le statut (int, up = 1 et down = 0).
+// Renvoie un int et pas un bool au cas où il y aurait besoin d'ajouter d'autres statuts plus tard.
 // On peut changer le nombre de paquets à envoyer et la durée avant time out.
 func probeIP(IPaddr string) int {
 
@@ -141,7 +144,7 @@ func probeIP(IPaddr string) int {
 	return 0
 }
 
-// Teste toutes les IPs mentionnées dans un slice de struct puis ré-écrit le fichier JSON.
+// Teste toutes les IPs mentionnées dans routers.json puis le ré-écrit.
 // Ne prend rien en entrée et ne renvoie rien.
 // Fonction sans condition de sortie.
 func probeAll() {

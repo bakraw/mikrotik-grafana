@@ -20,6 +20,7 @@ type Router struct {
 	Adresse  string  `json:"adresse"`
 	Username string  `json:"username"`
 	Statut   int     `json:"statut"`
+	Visible  bool    `json:"visible"`
 }
 
 // Structure prometheus_targets.json
@@ -189,7 +190,11 @@ func writePromTargets(data []PromTargets, target string) {
 func addRouter() {
 
 	var addrPost, addrIP, username string
-	var isWatchguard bool = false
+	var adresse string
+	var lat, lon float64
+	var isVisible bool
+
+	var isWatchguard = false
 
 	// Lecture fichiers
 	dataRouters := readJSON()
@@ -226,12 +231,15 @@ func addRouter() {
 	}
 
 	// Récupération coordonnées géographiques
-	resBody, resCode := geoAPI(addrPost)
-	if resCode != 200 {
-		log.Fatalf("--- Erreur lors de l'appel à l'API de géocodage (code %d)", resCode)
+	if addrPost != "" {
+		isVisible = true
+		resBody, resCode := geoAPI(addrPost)
+		if resCode != 200 {
+			log.Fatalf("--- Erreur lors de l'appel à l'API de géocodage (code %d)", resCode)
+		}
+		lat, lon, adresse := extractCoords(resBody)
+		fmt.Printf("- %s\n- %f, %f\n", adresse, lat, lon)
 	}
-	lat, lon, adresse := extractCoords(resBody)
-	fmt.Printf("- %s\n- %f, %f\n", adresse, lat, lon)
 
 	// Récupération entreprise
 	fmt.Print("\033[36mUtilisateur Grafana associé >>> \033[0m")
@@ -247,6 +255,7 @@ func addRouter() {
 		Adresse:  adresse,
 		Username: username,
 		Statut:   0,
+		Visible:  isVisible,
 	}
 
 	dataRouters = append(dataRouters, newRouter)
