@@ -111,6 +111,10 @@ Créer d'autres utilisateurs si besoin (dans la barre latérale: *Administration
 
 > N.B.- Dans la configuration actuelle, tous les utilisateurs ont accès à tous les dashboards du dossier principal, donc éviter d'en créer d'autres. Sinon, les mettre dans des dossiers à accès restreint.
 
+### Réinstallation / migration / mise à jour
+
+En cas de modification ou de migration de l'instance, penser à faire un backup de *routers.json*, *global_targets.json* et *mikrotik_targets.json* pour ne pas avoir à ajouter tous les routeurs à nouveau, ainsi que des mots de passe renseignés dans *snmp_config.yml*.
+
 ## Ajout et supression de routeur
 
 ### Ajout
@@ -122,10 +126,9 @@ cd ~/mikrotik-grafana/bin/
 ```
 
 - Si l'adresse IP à ajouter correspond à un Watchguard, l'indiquer en ajoutant un *W* sans espace avant l'adresse IP pour éviter des problèmes de compatibilité (ex: ***W**8.8.8.8*)
-
+- Si le routeur ne doit pas être affiché sur la carte, laisser l'adresse postale vide.
+    > N.B.- L'adresse postale entrée n'a pas besoin d'être parfaitement écrite (pas besoin d'accents, tirets, etc.) mais veiller à inclure un minimum d'informations pour que l'API renvoie les bonnes coordonnées (ex: *1 rue leclerc st etienne* suffit à obtenir *1 Rue du Général Leclerc 42100 Saint-Étienne*)
 - Le nom d'utilisateur Grafana renseigné est comparé à celui renvoyé directement par Grafana, et doit donc **être identique** à celui du compte Grafana associé (pas grave si les majuscules sont différentes), sinon il n'apparaîtra pas sur le dashboard de cet utilisateur. Laisser le champ vide si le routeur ne doit être vu que par l'admin.
-
-> N.B.- L'adresse postale entrée n'a pas besoin d'être parfaitement écrite (pas besoin d'accents, tirets, etc.) mais veiller à inclure un minimum d'informations pour que l'API renvoie les bonnes coordonnées (ex: *1 rue leclerc st etienne* suffit à obtenir *1 Rue du Général Leclerc 42100 Saint-Étienne*)
 
 ### Suppression
 
