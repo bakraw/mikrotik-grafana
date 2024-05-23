@@ -20,10 +20,11 @@ type Router struct {
 	Adresse  string  `json:"adresse"`
 	Username string  `json:"username"`
 	Statut   int     `json:"statut"`
+	RTT      float64 `json:"rtt"`
 	Visible  bool    `json:"visible"`
 }
 
-// Structure prometheus_targets.json
+// Structure global_targets.json et mikrotik_targets.json
 type PromTargets struct {
 	Labels  Labels   `json:"labels"`
 	Targets []string `json:"targets"`
@@ -255,6 +256,7 @@ func addRouter() {
 		Adresse:  adresse,
 		Username: username,
 		Statut:   0,
+		RTT:      0.0,
 		Visible:  isVisible,
 	}
 
