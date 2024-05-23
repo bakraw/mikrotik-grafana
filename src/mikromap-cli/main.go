@@ -238,7 +238,7 @@ func addRouter() {
 		if resCode != 200 {
 			log.Fatalf("--- Erreur lors de l'appel à l'API de géocodage (code %d)", resCode)
 		}
-		lat, lon, adresse := extractCoords(resBody)
+		lat, lon, adresse = extractCoords(resBody)
 		fmt.Printf("- %s\n- %f, %f\n", adresse, lat, lon)
 	}
 
