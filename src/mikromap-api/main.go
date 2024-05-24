@@ -22,11 +22,13 @@ type Router struct {
 	Adresse  string  `json:"adresse"`
 	Username string  `json:"username"`
 	Statut   int     `json:"statut"`
+	RTT      float64 `json:"rtt"`
+	Visible  bool    `json:"visible"`
 }
 
 // Renvoie le chemin vers le fichier JSON.
 // Ne prend rien en entrée et renvoie le chemin (string).
-// A modifier si besoin de mettre le fichier ailleurs que dans le répertoire parent.
+// A modifier si besoin de mettre le fichier ailleurs que dans conf/.
 func getPath() string {
 
 	filePath := fmt.Sprintf("/home/%s/mikrotik-grafana/conf/routers.json", os.Getenv("SUDO_USER"))
@@ -75,12 +77,12 @@ func writeJSON(data []Router) {
 
 // Traite les requêtes HTTP GET.
 // Renvoie le contenu de routers.json qui concerne l'utilisateur Grafana qui fait le call.
-// Prend en entrée un http.responseWriter et une http.Request.
+// Prend en entrée un http.responseWriter et un pointeur *http.Request.
 // Ne devrait être appelée que via HandleFunc().
-func getMikromap(w http.ResponseWriter, r *http.Request) {
+func getMikromap(writer http.ResponseWriter, request *http.Request) {
 
 	// Récupération du nom d'utilisateur transmis par Grafana
-	user := r.URL.Query().Get("user")
+	user := request.URL.Query().Get("user")
 
 	fmt.Printf("Requête GET entrante sur /mikromap (user = %s)\n", user)
 
@@ -88,7 +90,7 @@ func getMikromap(w http.ResponseWriter, r *http.Request) {
 	dataRouters := readJSON()
 
 	// Suppression dans le struct de tous les routeurs dont le Username n'est pas identique au paramètre reçu.
-	// Si le paramètre vaut admin, on saute cette étape.
+	// Si le paramètre reçu vaut admin, on saute cette étape pour renvoyer tous les routeurs.
 	if user != "admin" {
 		// On parcourt le slice dans le sens inverse pour ne pas modifier des éléments pas encore parcourus.
 		for i := len(dataRouters) - 1; i >= 0; i-- {
@@ -100,7 +102,7 @@ func getMikromap(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Envoi du struct modifié
-	json.NewEncoder(w).Encode(dataRouters)
+	json.NewEncoder(writer).Encode(dataRouters)
 }
 
 // Traite les requêtes HTTP entrantes.
@@ -115,18 +117,23 @@ func handleRequests() {
 }
 
 // Ping une adresse IP pour vérifier son état.
-// Prend en entrée un adresse IP (string) et renvoie le statut (int, up = 1 et down = 0).
-// On peut changer le nombre de paquets à envoyer et la durée avant time out.
-func probeIP(IPaddr string) int {
+// Utilisé par Grafana pour déterminer la couleur du point à afficher.
+// Prend en entrée un adresse IP (string) et renvoie le statut (int, up = 1 et down = 0) et le dernier Round Trip Time (float64, milliisecondes).
+// Statut est un int et pas un bool au cas où il y aurait besoin d'ajouter d'autres statuts plus tard.
+// On peut changer le nombre de paquets à envoyer et la durée avant timeout.
+func probeIP(IPaddr string) (int, float64) {
 
-	// Configuration du ping
+	var RTT float64
+
+	// Configuration du ping / 1e6
 	pinger, err := probing.NewPinger(IPaddr)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la configuration du ping vers l'adresse spécifiée:\n%s", err)
 	}
 	pinger.Count = 1 // Nombre de paquets à envoyer.
 	pinger.SetPrivileged(true)
-	pinger.Timeout = time.Millisecond * 500 // Durée avant time out (en time.Duration).
+	pinger.Timeout = time.Millisecond * 300 // Durée avant time out (en time.Duration).
+	pinger.RecordRtts = true
 
 	// Exécution du ping
 	err = pinger.Run()
@@ -134,17 +141,27 @@ func probeIP(IPaddr string) int {
 		log.Fatalf("--- Erreur lors de l'exécution du ping vers l'adresse spécifiée:\n%s", err)
 	}
 
+	// pinger.Statistics().Rtts est un array contenant tous les RTTs enregistrés.
+	// Si sa taille est supérieure à 0, on récupère le dernier RTT de l'array.
+	// Les RTTs sont en time.Duration (exprimée en ns), donc on les cast en float64 (plus facile à manipuler) puis on les divise par 1e6.
+	// Les timeouts ne sont pas ajoutés à l'array, donc on doit le vider (sinon on récupèrerait le dernier RTT valide en cas de timeout).
+	if len(pinger.Statistics().Rtts) >= 1 {
+		RTT = float64(pinger.Statistics().Rtts[len(pinger.Statistics().Rtts)-1]) / 1e6
+		pinger.Statistics().Rtts = nil
+	}
+
 	// Résultat
 	if pinger.Statistics().PacketsRecv == pinger.Statistics().PacketsSent {
-		return 1
+		return 1, RTT
 	}
-	return 0
+	return 0, RTT
 }
 
-// Teste toutes les IPs mentionnées dans un slice de struct puis ré-écrit le fichier JSON.
+// Teste toutes les IPs mentionnées dans routers.json puis le ré-écrit.
 // Ne prend rien en entrée et ne renvoie rien.
 // Fonction sans condition de sortie.
 func probeAll() {
+
 	var routers []Router
 
 	for {
@@ -154,7 +171,7 @@ func probeAll() {
 
 		// Test des IPs
 		for i := range routers {
-			routers[i].Statut = probeIP(routers[i].IP)
+			routers[i].Statut, routers[i].RTT = probeIP(routers[i].IP)
 		}
 
 		// Ecriture du fichier JSON

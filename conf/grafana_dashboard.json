@@ -174,7 +174,34 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RTT"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "index": 0,
+                        "text": "t/o"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 16,
@@ -224,7 +251,8 @@
             },
             "displayProperties": [
               "User",
-              "Adresse"
+              "Adresse",
+              "RTT"
             ],
             "location": {
               "mode": "auto"
@@ -275,18 +303,48 @@
               "name": "Statut"
             },
             {
+              "jsonPath": "rtt",
+              "language": "jsonata",
+              "name": "RTT"
+            },
+            {
               "jsonPath": "username",
               "language": "jsonata",
               "name": "User"
+            },
+            {
+              "jsonPath": "visible",
+              "language": "jsonata",
+              "name": "Visibilité"
             }
           ],
           "method": "GET",
           "queryParams": "",
           "refId": "A",
-          "urlPath": "/mikromap?user=${__user.login}"
+          "urlPath": "/mikromap?user=${User}"
         }
       ],
       "title": "Map",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "equal",
+                  "options": {
+                    "value": "1"
+                  }
+                },
+                "fieldName": "Visibilité"
+              }
+            ],
+            "match": "any",
+            "type": "include"
+          }
+        }
+      ],
       "type": "orchestracities-map-panel"
     },
     {
@@ -312,8 +370,126 @@
           "refId": "A"
         }
       ],
-      "title": "SNMP",
+      "title": "Scrape",
       "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "${DS_MARCUSOLSSON-JSON-DATASOURCE}"
+      },
+      "description": "ICMP Round Trip Time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "t/o"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 150
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 18
+      },
+      "id": 1814,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "cacheDurationSeconds": 300,
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "${DS_MARCUSOLSSON-JSON-DATASOURCE}"
+          },
+          "fields": [
+            {
+              "jsonPath": "ip",
+              "language": "jsonata"
+            },
+            {
+              "jsonPath": "rtt",
+              "language": "jsonata",
+              "name": ""
+            }
+          ],
+          "method": "GET",
+          "queryParams": "",
+          "refId": "A",
+          "urlPath": "/mikromap?user=${__user.login}"
+        }
+      ],
+      "title": "ICMP RTT",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "equal",
+                  "options": {
+                    "value": "$instance"
+                  }
+                },
+                "fieldName": "result0"
+              }
+            ],
+            "match": "any",
+            "type": "include"
+          }
+        }
+      ],
+      "type": "stat"
     },
     {
       "datasource": {
@@ -366,7 +542,7 @@
       "gridPos": {
         "h": 4,
         "w": 4,
-        "x": 0,
+        "x": 4,
         "y": 18
       },
       "id": 1656,
@@ -404,7 +580,7 @@
           "refId": "A"
         }
       ],
-      "title": "Total SNMP time (walk and processing)",
+      "title": "SNMP total",
       "type": "stat"
     },
     {
@@ -458,7 +634,7 @@
       "gridPos": {
         "h": 4,
         "w": 4,
-        "x": 4,
+        "x": 8,
         "y": 18
       },
       "id": 1657,
@@ -496,7 +672,7 @@
           "refId": "A"
         }
       ],
-      "title": "Time SNMP walk/bulkwalk took",
+      "title": "SNMP walk/bulkwalk",
       "type": "stat"
     },
     {
@@ -538,7 +714,7 @@
       "gridPos": {
         "h": 4,
         "w": 4,
-        "x": 8,
+        "x": 12,
         "y": 18
       },
       "id": 1658,
@@ -576,7 +752,7 @@
           "refId": "A"
         }
       ],
-      "title": "scrape pdus returned",
+      "title": "Scrape PDUs returned",
       "type": "stat"
     },
     {
@@ -1993,8 +2169,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#299c46",
-                "value": null
+                "color": "#299c46"
               }
             ]
           },
@@ -2062,8 +2237,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#299c46",
-                "value": null
+                "color": "#299c46"
               }
             ]
           }
@@ -2129,8 +2303,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#299c46",
-                "value": null
+                "color": "#299c46"
               }
             ]
           }
@@ -2207,8 +2380,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#299c46",
-                "value": null
+                "color": "#299c46"
               },
               {
                 "color": "red",
@@ -2309,8 +2481,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
-                "value": null
+                "color": "blue"
               },
               {
                 "color": "dark-yellow",
@@ -2389,8 +2560,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#299c46",
-                "value": null
+                "color": "#299c46"
               }
             ]
           },
@@ -2457,8 +2627,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#299c46",
-                "value": null
+                "color": "#299c46"
               }
             ]
           },
@@ -2525,8 +2694,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#299c46",
-                "value": null
+                "color": "#299c46"
               }
             ]
           },
@@ -2626,8 +2794,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -2720,8 +2887,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "super-light-yellow",
-                "value": null
+                "color": "super-light-yellow"
               }
             ]
           },
@@ -2764,8 +2930,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "green",
-                      "value": null
+                      "color": "green"
                     },
                     {
                       "color": "#299c46",
@@ -2865,8 +3030,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgb(77, 79, 79)",
-                      "value": null
+                      "color": "rgb(77, 79, 79)"
                     },
                     {
                       "color": "#EAB839",
@@ -2909,8 +3073,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgb(77, 79, 79)",
-                      "value": null
+                      "color": "rgb(77, 79, 79)"
                     },
                     {
                       "color": "super-light-yellow",
@@ -2941,8 +3104,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgb(77, 79, 79)",
-                      "value": null
+                      "color": "rgb(77, 79, 79)"
                     },
                     {
                       "color": "super-light-yellow",
@@ -2985,8 +3147,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgb(77, 79, 79)",
-                      "value": null
+                      "color": "rgb(77, 79, 79)"
                     },
                     {
                       "color": "super-light-yellow",
@@ -3406,8 +3567,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3799,8 +3959,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4071,8 +4230,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "super-light-yellow",
-                "value": null
+                "color": "super-light-yellow"
               }
             ]
           },
@@ -4397,8 +4555,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -4575,8 +4732,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4967,8 +5123,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -5145,8 +5300,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -5284,8 +5438,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -6046,8 +6199,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -6158,8 +6310,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -6232,8 +6383,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -6299,8 +6449,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -6366,8 +6515,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -6432,8 +6580,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -6498,8 +6645,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -6564,8 +6710,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -6656,7 +6801,7 @@
             "h": 4,
             "w": 3,
             "x": 0,
-            "y": 146
+            "y": 154
           },
           "id": 1646,
           "options": {
@@ -6830,7 +6975,7 @@
             "h": 8,
             "w": 11,
             "x": 3,
-            "y": 146
+            "y": 154
           },
           "id": 1681,
           "options": {
@@ -7070,7 +7215,7 @@
             "h": 8,
             "w": 10,
             "x": 14,
-            "y": 146
+            "y": 154
           },
           "id": 1679,
           "options": {
@@ -7264,7 +7409,7 @@
             "h": 4,
             "w": 3,
             "x": 0,
-            "y": 150
+            "y": 158
           },
           "id": 1680,
           "options": {
@@ -7535,7 +7680,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 154
+            "y": 162
           },
           "id": 1678,
           "options": {
@@ -7969,7 +8114,7 @@
             "h": 4,
             "w": 4,
             "x": 0,
-            "y": 147
+            "y": 155
           },
           "id": 1713,
           "options": {
@@ -8037,7 +8182,7 @@
             "h": 4,
             "w": 4,
             "x": 4,
-            "y": 147
+            "y": 155
           },
           "id": 1706,
           "options": {
@@ -8123,7 +8268,7 @@
             "h": 4,
             "w": 4,
             "x": 8,
-            "y": 147
+            "y": 155
           },
           "id": 1707,
           "options": {
@@ -8213,7 +8358,7 @@
             "h": 4,
             "w": 4,
             "x": 12,
-            "y": 147
+            "y": 155
           },
           "id": 1709,
           "options": {
@@ -8313,7 +8458,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 147
+            "y": 155
           },
           "id": 1712,
           "options": {
@@ -8381,7 +8526,7 @@
             "h": 4,
             "w": 2,
             "x": 0,
-            "y": 151
+            "y": 159
           },
           "id": 1710,
           "options": {
@@ -8449,7 +8594,7 @@
             "h": 4,
             "w": 2,
             "x": 2,
-            "y": 151
+            "y": 159
           },
           "id": 1714,
           "options": {
@@ -8517,7 +8662,7 @@
             "h": 4,
             "w": 2,
             "x": 4,
-            "y": 151
+            "y": 159
           },
           "id": 1716,
           "options": {
@@ -8585,7 +8730,7 @@
             "h": 4,
             "w": 2,
             "x": 6,
-            "y": 151
+            "y": 159
           },
           "id": 1715,
           "options": {
@@ -8653,7 +8798,7 @@
             "h": 4,
             "w": 4,
             "x": 8,
-            "y": 151
+            "y": 159
           },
           "id": 1708,
           "options": {
@@ -8721,7 +8866,7 @@
             "h": 4,
             "w": 4,
             "x": 12,
-            "y": 151
+            "y": 159
           },
           "id": 1711,
           "options": {
@@ -9137,7 +9282,7 @@
             "h": 7,
             "w": 6,
             "x": 0,
-            "y": 148
+            "y": 156
           },
           "id": 1640,
           "options": {
@@ -9216,7 +9361,7 @@
             "h": 7,
             "w": 4,
             "x": 6,
-            "y": 148
+            "y": 156
           },
           "id": 1674,
           "options": {
@@ -9343,7 +9488,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 149
+            "y": 157
           },
           "id": 1268,
           "options": {
@@ -9486,7 +9631,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 155
+            "y": 163
           },
           "id": 1282,
           "options": {
@@ -9673,7 +9818,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 150
+            "y": 158
           },
           "id": 1510,
           "options": {
@@ -9814,7 +9959,7 @@
             "h": 6,
             "w": 12,
             "x": 12,
-            "y": 150
+            "y": 158
           },
           "id": 1549,
           "options": {
@@ -9982,7 +10127,7 @@
             "h": 11,
             "w": 6,
             "x": 0,
-            "y": 173
+            "y": 181
           },
           "id": 1339,
           "options": {
@@ -10225,6 +10370,37 @@
         "useTags": false
       },
       {
+        "allValue": "${__user.login}",
+        "current": {},
+        "datasource": {
+          "type": "marcusolsson-json-datasource",
+          "uid": "${DS_MARCUSOLSSON-JSON-DATASOURCE}"
+        },
+        "definition": "username",
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "User",
+        "options": [],
+        "query": {
+          "cacheDurationSeconds": 300,
+          "fields": [
+            {
+              "jsonPath": "username",
+              "language": "jsonata"
+            }
+          ],
+          "method": "GET",
+          "queryParams": "",
+          "urlPath": "/mikromap?user=${__user.login}"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
         "current": {},
         "datasource": {
           "type": "marcusolsson-json-datasource",
@@ -10234,6 +10410,7 @@
         "description": "",
         "hide": 0,
         "includeAll": false,
+        "label": "Instance",
         "multi": false,
         "name": "instance",
         "options": [],
@@ -10247,12 +10424,12 @@
           ],
           "method": "GET",
           "queryParams": "",
-          "urlPath": "/mikromap?user=${__user.login}"
+          "urlPath": "/mikromap?user=${User}"
         },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
+        "sort": 7,
         "type": "query"
       },
       {
@@ -10476,6 +10653,6 @@
   "timezone": "",
   "title": "Supervision Mikrotik",
   "uid": "nR3NRDGaz",
-  "version": 65,
+  "version": 77,
   "weekStart": ""
 }
