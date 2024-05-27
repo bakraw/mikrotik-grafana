@@ -84,7 +84,7 @@ func getMikromap(writer http.ResponseWriter, request *http.Request) {
 	// Récupération du nom d'utilisateur transmis par Grafana
 	user := request.URL.Query().Get("user")
 
-	fmt.Printf("Requête GET entrante sur /mikromap (user = %s)\n", user)
+	fmt.Printf("\033[32mRequête GET entrante sur /mikromap (user = %s)\033[0m\n", user)
 
 	// Récupération routers.json dans un struct
 	dataRouters := readJSON()

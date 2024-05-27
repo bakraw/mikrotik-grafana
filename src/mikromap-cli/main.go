@@ -242,6 +242,13 @@ func addRouter() {
 		fmt.Printf("- %s\n- %f, %f\n", adresse, lat, lon)
 	}
 
+	// A chaque routeur avec la même adresse, on le décale légèrement pour éviter une superposition.
+	for _, v := range dataRouters {
+		if v.Adresse == adresse {
+			lat += 0.0001
+		}
+	}
+
 	// Récupération entreprise
 	fmt.Print("\033[36mUtilisateur Grafana associé >>> \033[0m")
 	if scanner.Scan() {
