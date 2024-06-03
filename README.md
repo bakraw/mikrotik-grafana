@@ -35,7 +35,7 @@ Sur les routeurs:
 3. Mettre la sécurité sur ```private```.
 4. ```SHA``` en protocole d'authentification et ```AES``` en protocole de chiffrement.
 5. Indiquer les mots de passe d'authentification et de chiffrement.
-6. Limiter l'accès à la communauté à l'IP du serveur de supervision (*address* en CLI, champ *Addresses* dans WinBox).
+6. Créer les règles nécessaires sur le pare-feu (UDP sur port 161).
 
 Via WinBox, ces options se trouvent dans *IP* > *SNMP* puis *Communities*.
 
@@ -45,7 +45,7 @@ Via WinBox, ces options se trouvent dans *IP* > *SNMP* puis *Communities*.
 
 #### Watchguard
 
-Sur les pare-feux, veiller à ce que les protocoles SNMP (pour les infos) et ICMP (pour la vérification de l'état sur la carte) soit autorisé pour l'IP du serveur de supervision, et configurer la communauté de la même manière que sur les routeurs Mikrotik.
+Sur les pare-feux, veiller à ce que les protocoles SNMP (pour les infos) et ICMP (pour la vérification de l'état sur la carte) soient autorisés pour l'IP du serveur de supervision, et configurer la communauté de la même manière que sur les routeurs Mikrotik.
 
 #### Fichier de configuration SNMP Exporter
 
@@ -128,7 +128,7 @@ cd ~/mikrotik-grafana/bin/
 - Si l'adresse IP à ajouter correspond à un Watchguard, l'indiquer en ajoutant un *W* sans espace avant l'adresse IP pour éviter des problèmes de compatibilité (ex: ***W**8.8.8.8*)
 - Si le routeur ne doit pas être affiché sur la carte, laisser l'adresse postale vide.
     > N.B.- L'adresse postale entrée n'a pas besoin d'être parfaitement écrite (pas besoin d'accents, tirets, etc.) mais veiller à inclure un minimum d'informations pour que l'API renvoie les bonnes coordonnées (ex: *1 rue leclerc st etienne* suffit à obtenir *1 Rue du Général Leclerc 42100 Saint-Étienne*)
-- Le nom d'utilisateur Grafana renseigné est comparé à celui renvoyé directement par Grafana, et doit donc **être identique** à celui du compte Grafana associé (pas grave si les majuscules sont différentes), sinon il n'apparaîtra pas sur le dashboard de cet utilisateur. Laisser le champ vide si le routeur ne doit être vu que par l'admin.
+- Le nom d'utilisateur Grafana renseigné est comparé à celui renvoyé directement par Grafana, et doit donc **être identique** à celui du compte Grafana associé (pas grave si les majuscules sont différentes), sinon il n'apparaîtra pas sur le dashboard de cet utilisateur. Laisser le champ vide si le routeur ne doit être visible que par l'admin.
 
 ### Suppression
 
