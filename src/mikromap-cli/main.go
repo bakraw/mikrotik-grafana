@@ -207,11 +207,13 @@ func (user User) saveUser() {
 	var path string = fmt.Sprintf("%s/mikrotik-grafana/users/%s", os.Getenv("HOME"), user.Name)
 	data := fmt.Sprintf("%s:%s", user.Login, user.Password)
 
-	// Création d'un nouveau fichier
+	// Création du dossier users/ s'il n'existe pas
 	err := os.Mkdir(strings.TrimSuffix(path, user.Name), 0700)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la création du dossier 'users': %s", err)
 	}
+
+	// Création du fichier
 	file, err := os.Create(path)
 	if err != nil {
 		log.Fatalf("--- Erreur lors de la création du fichier utilisateur : %s", err)
@@ -225,6 +227,9 @@ func (user User) saveUser() {
 	}
 }
 
+// Parcourt routers.json et fait un call à l'API d'admin Grafana pour chaque nom d'utilisateur.
+// Si l'utilisateur existe déjà, l'API renvoie un 412 et l'utilisateur n'est pas créé.
+// Sinon l'API renvoie un 200, donc on crée le fichier qui contient la paire login:password.
 func addUsers(pass string, grafanaIP string) {
 
 	var url string
@@ -232,14 +237,17 @@ func addUsers(pass string, grafanaIP string) {
 
 	fmt.Println("--- Création des utilisateurs dans Grafana...")
 
+	// Parcours de tous les routeurs
 	for _, v := range dataRouters {
 
+		// Génération du login et du password
 		login := strings.ToLower(v.Username)
 		password, err := password.Generate(10, 2, 2, false, false)
 		if err != nil {
 			log.Fatalf("--- Erreur lors de la génération du mot de passe: %s", err)
 		}
 
+		// Création du nouvel utilisateur
 		newUser := User{
 			Name:     v.Username,
 			Email:    login,
@@ -248,16 +256,22 @@ func addUsers(pass string, grafanaIP string) {
 			OrgId:    1,
 		}
 
+		// Formatage du struc en JSON pour transmission à l'API
 		payload, err := json.Marshal(newUser)
 		if err != nil {
 			log.Fatalf("--- Erreur lors de la génération du payload : %s", err)
 		}
 
+		// Formation de l'URL
 		url = fmt.Sprintf("http://admin:%s@%s/api/admin/users", pass, grafanaIP)
+
+		// Requête POST à l'API
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
 		if err != nil {
 			log.Fatalf("--- Erreur lors de la requête à l'API d'administration de Grafana: %s", err)
 		}
+
+		// Si le l'API a crée l'utilisateur avec succès, on crée son fichier via saveUser().
 		if resp.StatusCode == 200 {
 			newUser.saveUser()
 		}
@@ -411,17 +425,20 @@ func removeRouter() {
 
 func main() {
 
+	// Création flags par défaut
 	var n int = 1
 	var users bool = false
 	var pass string = "admin"
 	var grafanaIP = "127.0.0.1:3000"
 
+	// Récupération des flags.
 	getopt.Flag(&n, 'n', "Nombre de routeurs à ajouter (ou supprimer si un nombre négatif est entré). Peut valoir 0 (si on veut uniquement créer les utilisateurs déjà dans les fichiers).\nDéfaut:")
 	getopt.FlagLong(&users, "users", 'u', "Utiliser si les utilisateurs doivent être créés automatiquement sur Grafana. Les paires login:password sont enregistrées dans mikrotik-grafana/users/.")
 	getopt.FlagLong(&pass, "pass", 'p', "Mot de passe administrateur à utiliser lors des appels à l'API d'administration de Grafana.\nDéfaut:")
 	getopt.FlagLong(&grafanaIP, "grafana", 'g', "IP:port de l'instance Grafana vers laquelle faire les appels à l'API d'administration.\nDéfaut:")
 	getopt.ParseV2()
 
+	// Appel à addRouter() ou removeRouter() selon la valeur de n
 	if n >= 0 {
 		for i := 0; i < n; i++ {
 			addRouter()
@@ -432,6 +449,7 @@ func main() {
 		}
 	}
 
+	// Appel à addUsers si le flag users est activé
 	if users {
 		addUsers(pass, grafanaIP)
 	}
