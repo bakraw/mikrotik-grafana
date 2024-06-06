@@ -115,9 +115,9 @@ Créer d'autres utilisateurs si besoin (dans la barre latérale: *Administration
 
 En cas de modification ou de migration de l'instance, penser à faire un backup de *routers.json*, *global_targets.json* et *mikrotik_targets.json* pour ne pas avoir à ajouter tous les routeurs à nouveau, ainsi que des mots de passe renseignés dans *snmp_config.yml*.
 
-## Ajout et supression de routeur
+## mikromap-cli
 
-### Ajout
+### Ajout de routeurs à la supervision
 
 L'ajout de routeur à la supervision se fait via *mikromap-cli*:
 ```bash
@@ -125,11 +125,19 @@ cd ~/mikrotik-grafana/bin/
 ./mikromap-cli
 ```
 
+Pour ajouter plusieurs routeurs sans redémarrer l'application à chaque fois, utiliser le flag ```-n [valeur positive]```.
+
 - Si l'adresse IP à ajouter correspond à un Watchguard, l'indiquer en ajoutant un *W* sans espace avant l'adresse IP pour éviter des problèmes de compatibilité (ex: ***W**8.8.8.8*)
 - Si le routeur ne doit pas être affiché sur la carte, laisser l'adresse postale vide.
     > N.B.- L'adresse postale entrée n'a pas besoin d'être parfaitement écrite (pas besoin d'accents, tirets, etc.) mais veiller à inclure un minimum d'informations pour que l'API renvoie les bonnes coordonnées (ex: *1 rue leclerc st etienne* suffit à obtenir *1 Rue du Général Leclerc 42100 Saint-Étienne*)
 - Le nom d'utilisateur Grafana renseigné est comparé à celui renvoyé directement par Grafana, et doit donc **être identique** à celui du compte Grafana associé (pas grave si les majuscules sont différentes), sinon il n'apparaîtra pas sur le dashboard de cet utilisateur. Laisser le champ vide si le routeur ne doit être visible que par l'admin.
 
-### Suppression
+### Suppression de routeurs de la supervision
 
-Pour supprimer un routeur, utiliser *mikromap-cli* et entrer un nombre négatif de routeurs à ajouter. Il n'y a besoin que de l'adresse IP du routeur, et le préfixe *W* n'est pas nécessaire pour désigner un Watchguard.
+Pour supprimer un routeur, utiliser *mikromap-cli* avec le flag ```-n [valeur négative]```. Il n'y a besoin que de l'adresse IP du routeur, et le préfixe *W* n'est pas nécessaire pour désigner un Watchguard.
+
+### Création automatique des utilisateurs
+
+Si le flag ```--users``` est activé, l'outil parcourera tous les routeurs et pour chacun tentera un appel à l'API d'administration de Grafana pour ajouter un utilisateur. Si l'utilisateur n'existe pas encore, il est créé et la paire login:password générée est stockée dans un fichier sous mikrotik-grafana/users/.
+
+Pour que les appels à l'API puissent passer, indiquer le mot de passe de l'administateur Grafana avec ```--pass [mot de passe]```. De même, si on fait un appel à une instance distante ou sur un port autre que 3000, indiquer son IP avec ```--grafana [{ip}:{port}]```.
