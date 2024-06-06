@@ -10,6 +10,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/pborman/getopt/v2"
+	"github.com/sethvargo/go-password/password"
 )
 
 // Structure routers.json
@@ -31,6 +34,15 @@ type PromTargets struct {
 }
 type Labels struct {
 	Job string `json:"job"`
+}
+
+// Structure utilisateur Grafana.
+type User struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Login    string `json:"login"`
+	Password string `json:"password"`
+	OrgId    int    `json:"OrgId"`
 }
 
 // Fait un appel à l'API renseignée.
@@ -186,6 +198,74 @@ func writePromTargets(data []PromTargets, target string) {
 	}
 }
 
+// Crée un novueau fichier et y écrit la paire login:password d'un utilisateur.
+// Méthode de User. Ne prend rien en entrée et ne renvoie rien.
+// Les fichiers sont sauvegardés dans ~/mikrotik-grafana/users/.
+func (user User) saveUser() {
+
+	// Récupération chemin et données à écrire
+	var path string = fmt.Sprintf("%s/mikrotik-grafana/users/%s", os.Getenv("HOME"), user.Name)
+	data := fmt.Sprintf("%s:%s", user.Login, user.Password)
+
+	// Création d'un nouveau fichier
+	err := os.Mkdir(strings.TrimSuffix(path, user.Name), 0700)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la création du dossier 'users': %s", err)
+	}
+	file, err := os.Create(path)
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la création du fichier utilisateur : %s", err)
+	}
+	defer file.Close()
+
+	// Ecriture du fichier
+	_, err = file.Write([]byte(data))
+	if err != nil {
+		log.Fatalf("--- Erreur lors de la sauvegarde de l'utilisateur: %s", err)
+	}
+}
+
+func addUsers(pass string, grafanaIP string) {
+
+	var url string
+	dataRouters := readJSON()
+
+	fmt.Println("--- Création des utilisateurs dans Grafana...")
+
+	for _, v := range dataRouters {
+
+		login := strings.ToLower(v.Username)
+		password, err := password.Generate(10, 2, 2, false, false)
+		if err != nil {
+			log.Fatalf("--- Erreur lors de la génération du mot de passe: %s", err)
+		}
+
+		newUser := User{
+			Name:     v.Username,
+			Email:    login,
+			Login:    login,
+			Password: password,
+			OrgId:    1,
+		}
+
+		payload, err := json.Marshal(newUser)
+		if err != nil {
+			log.Fatalf("--- Erreur lors de la génération du payload : %s", err)
+		}
+
+		url = fmt.Sprintf("http://admin:%s@%s/api/admin/users", pass, grafanaIP)
+		resp, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
+		if err != nil {
+			log.Fatalf("--- Erreur lors de la requête à l'API d'administration de Grafana: %s", err)
+		}
+		if resp.StatusCode == 200 {
+			newUser.saveUser()
+		}
+	}
+
+	fmt.Println("--- Utilisateurs créés.")
+}
+
 // Fonction principale qui ajoute un routeur aux fichiers.
 // Ne prend rien en entrée et ne renvoie rien.
 func addRouter() {
@@ -331,13 +411,16 @@ func removeRouter() {
 
 func main() {
 
-	var n int
+	var n int = 1
+	var users bool = false
+	var pass string = "admin"
+	var grafanaIP = "127.0.0.1:3000"
 
-	fmt.Print("\033[32mNombre de routeurs à ajouter >>> \033[0m")
-	_, err := fmt.Scanln(&n)
-	if err != nil {
-		log.Fatalf("--- Erreur lors de la récupération de la saisie:\n%s", err)
-	}
+	getopt.Flag(&n, 'n', "Nombre de routeurs à ajouter (ou supprimer si un nombre négatif est entré). Peut valoir 0 (si on veut uniquement créer les utilisateurs déjà dans les fichiers).\nDéfaut:")
+	getopt.FlagLong(&users, "users", 'u', "Utiliser si les utilisateurs doivent être créés automatiquement sur Grafana. Les paires login:password sont enregistrées dans mikrotik-grafana/users/.")
+	getopt.FlagLong(&pass, "pass", 'p', "Mot de passe administrateur à utiliser lors des appels à l'API d'administration de Grafana.\nDéfaut:")
+	getopt.FlagLong(&grafanaIP, "grafana", 'g', "IP:port de l'instance Grafana vers laquelle faire les appels à l'API d'administration.\nDéfaut:")
+	getopt.ParseV2()
 
 	if n >= 0 {
 		for i := 0; i < n; i++ {
@@ -347,5 +430,9 @@ func main() {
 		for i := 0; i < -n; i++ {
 			removeRouter()
 		}
+	}
+
+	if users {
+		addUsers(pass, grafanaIP)
 	}
 }
