@@ -138,6 +138,6 @@ Pour supprimer un routeur, utiliser *mikromap-cli* avec le flag ```-n [valeur n�
 
 ### Création automatique des utilisateurs
 
-Si le flag ```--users``` est activé, l'outil parcourera tous les routeurs et pour chacun tentera un appel à l'API d'administration de Grafana pour ajouter un utilisateur. Si l'utilisateur n'existe pas encore, il est créé et la paire login:password générée est stockée dans un fichier sous mikrotik-grafana/users/.
+Si le flag ```--users``` est activé, l'outil parcourera tous les routeurs et pour chacun tentera un appel à l'API d'administration de Grafana pour ajouter un utilisateur. Si l'utilisateur n'existe pas encore, il est créé et la paire login:password générée est stockée dans un fichier sous *mikrotik-grafana/users/*.
 
 Pour que les appels à l'API puissent passer, indiquer le mot de passe de l'administateur Grafana avec ```--pass [mot de passe]```. De même, si on fait un appel à une instance distante ou sur un port autre que 3000, indiquer son IP avec ```--grafana [{ip}:{port}]```.
