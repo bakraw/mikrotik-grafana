@@ -355,7 +355,7 @@ func addRouter() {
 		Lat:      lat,
 		Lon:      lon,
 		Adresse:  adresse,
-		Username: username,
+		Username: strings.ToUpper(username),
 		Statut:   0,
 		RTT:      0.0,
 		Visible:  isVisible,
@@ -399,7 +399,11 @@ func removeRouter() {
 	// Suppression de l'élément du struct dataRouters puis écriture de routers.json
 	for i, v := range dataRouters {
 		if v.IP == addrIP {
-			dataRouters = append(dataRouters[0:i], dataRouters[i+1:]...)
+			if i == len(dataRouters)-1 {
+				dataRouters = dataRouters[:len(dataRouters)-1]
+			} else {
+				dataRouters = append(dataRouters[0:i], dataRouters[i+1:]...)
+			}
 		}
 	}
 	writeJSON(dataRouters)
@@ -407,7 +411,11 @@ func removeRouter() {
 	// Suppression de l'élément du struct dataGlobal puis écriture de global_targets.json
 	for i, v := range dataGlobal[0].Targets {
 		if v == addrIP {
-			dataGlobal[0].Targets = append(dataGlobal[0].Targets[0:i], dataGlobal[0].Targets[i+1:]...)
+			if i == len(dataGlobal)-1 {
+				dataGlobal = dataGlobal[:len(dataGlobal)-1]
+			} else {
+				dataGlobal[0].Targets = append(dataGlobal[0].Targets[0:i], dataGlobal[0].Targets[i+1:]...)
+			}
 		}
 	}
 	writePromTargets(dataGlobal, "global_targets.json")
@@ -415,7 +423,11 @@ func removeRouter() {
 	// Suppression de l'élément du struct dataMikrotik puis écriture de mikrotik_targets.json
 	for i, v := range dataMikrotik[0].Targets {
 		if v == addrIP {
-			dataMikrotik[0].Targets = append(dataMikrotik[0].Targets[0:i], dataMikrotik[0].Targets[i+1:]...)
+			if i == len(dataMikrotik)-1 {
+				dataMikrotik = dataMikrotik[:len(dataMikrotik)-1]
+			} else {
+				dataMikrotik[0].Targets = append(dataMikrotik[0].Targets[0:i], dataMikrotik[0].Targets[i+1:]...)
+			}
 		}
 	}
 	writePromTargets(dataMikrotik, "mikrotik_targets.json")
