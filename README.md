@@ -25,31 +25,11 @@ tar -xf snmp_exporter*
 rm -rf *.tar.gz
 ```
 
-### Configuration
+### Configuration des routeurs
 
-#### Mikrotik
-
-Sur les routeurs:
-1. Supprimer la communauté *public* par défaut et en créer une nouvelle nommée *private*. 
-2. Limiter la communauté à la lecture seule.
-3. Mettre la sécurité sur ```private```.
-4. ```SHA``` en protocole d'authentification et ```AES``` en protocole de chiffrement.
-5. Indiquer les mots de passe d'authentification et de chiffrement.
-6. Créer les règles nécessaires sur le pare-feu (UDP sur port 161).
-
-Via WinBox, ces options se trouvent dans *IP* > *SNMP* puis *Communities*.
-
-![Configuration communauté SNMP via WinBox](https://github.com/bakraw/mikrotik-grafana/assets/161661948/c6bbd279-0839-4abb-8183-d13a1e1e7255)
-
-> N.B.- Pour l'instant, la paire de mots de passe doit être identique sur tous les routeurs / pare-feux. Le fichier de configuration de SNMP Exporter fait plus de 100 000 lignes de long et automatiser sa modification est une purge, tandis que Prometheus associe les configs d'authentification aux jobs et non aux cibles (donc il faudrait créer un job par routeur, et redémarrer Prometheus à chaque ajout). Désolé :(
-
-#### Watchguard
-
-Sur les pare-feux, veiller à ce que les protocoles SNMP (pour les infos) et ICMP (pour la vérification de l'état sur la carte) soient autorisés pour l'IP du serveur de supervision, et configurer la communauté de la même manière que sur les routeurs Mikrotik.
-
-#### Fichier de configuration SNMP Exporter
-
-Dans *snmp_config.yml*, indiquer les mot de passe d'authentification et de chiffrement SNMP (en haut du fichier, *password* et *priv_password*).
+Sur les pare-feux, veiller à ce que :
+- les protocoles SNMP (pour les infos) et ICMP (pour la vérification de l'état sur la carte) soient autorisés pour l'IP du serveur de supervision ( et de préférence bloqués pour les autres);
+- la communauté *public* soit bien en lecture seule (elle devrait l'être par défaut);
 
 ### Lancement
 
@@ -113,7 +93,7 @@ Créer d'autres utilisateurs si besoin (dans la barre latérale: *Administration
 
 ### Réinstallation / migration / mise à jour
 
-En cas de modification ou de migration de l'instance, penser à faire un backup de *routers.json*, *global_targets.json* et *mikrotik_targets.json* pour ne pas avoir à ajouter tous les routeurs à nouveau, ainsi que des mots de passe renseignés dans *snmp_config.yml*.
+En cas de modification ou de migration de l'instance, penser à faire un backup de *routers.json*, *global_targets.json* et *mikrotik_targets.json* pour ne pas avoir à ajouter tous les routeurs à nouveau.
 
 ## mikromap-cli
 
